@@ -47,3 +47,17 @@ export async function insertData(nomTB, data){
     }
 
 }
+
+export async function fetchData(nomTB, datos, condicion) {
+    try {
+        const { data, error } = await supabase
+            .from(nomTB)
+            .select(datos)
+            .eq(condicion.campo, condicion.valor)
+        return data
+
+
+    } catch (error) {
+        throw error + 'siiii'
+    }
+}
