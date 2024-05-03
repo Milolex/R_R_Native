@@ -40,6 +40,7 @@ export async function insertData(nomTB, data){
     const { error } = await supabase
         .from(nomTB)
         .insert(data)
+        .order('calificacion', { ascending: false})
     if (error) {
         alert('Error al insertar datos')
     }else {
@@ -54,6 +55,7 @@ export async function fetchData(nomTB, datos, condicion) {
             .from(nomTB)
             .select(datos)
             .eq(condicion.campo, condicion.valor)
+            .order('calificacion', { ascending: false})
         return data
 
 

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, FlatList, Dimensions, Image ,TouchableOpacity} from 'react-native';
+import { StyleSheet, View, Text, FlatList, Dimensions, Image ,TouchableOpacit, Button} from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons'; 
 import CabeCompo from './CabeCompo';
 import { fetchData } from '../SupaConsult';
+
 
 
 const windowHeight = Dimensions.get('window').height;
@@ -14,8 +15,8 @@ const Rute = () => (
         <View style={styles.inicio}>
             <CabeCompo/>
         </View>
-        <Text style={styles.titServici}>Crea Tu Ruta</Text>
-        <Text style={styles.descServi}>Selecciona los servicios que te gustaría experimentar.</Text>
+        <Text style={styles.titServici}>Disfruta de nuestras rutas:</Text>
+        <Text style={styles.descServi}>Aqui podras ver a detalle nuestras rutas.</Text>
         <ListaServiciosVertical />
     </View>
 
@@ -27,7 +28,7 @@ const ListaRutas = () => {
     useEffect(() => {
         const cargaDatos = async () => {
             try {
-                const datosRutas = await fetchData('rutas', 'nombre, foto', {campo: 'departamento', valor: 'Cundinamarca'});
+                const datosRutas = await fetchData('rutas_t', 'nombre, foto', {campo: 'departamento', valor: 'Cundinamarca'});
                 setNombreRuta(datosRutas);
 
             } catch(error) {
@@ -68,7 +69,7 @@ const ListaServicios = () => {
     useEffect(() => {
         const cargaDatos = async () => {
             try {
-                const datosServicios = await fetchData('servicios', 'nombre, foto',{campo: '', valor: ''});
+                const datosServicios = await fetchData('actividades', 'nombre, imagen',{campo: 'municipio', valor: 'San_Juan'});
                 setServicios(datosServicios);
 
             } catch(error) {
@@ -103,13 +104,76 @@ const ListaServicios = () => {
     );
 };
 
+
+
 const ListaServiciosVertical = () => {
+    const [servicios, setServicios] = useState([]);
+    const [selectedService, setSelectedService] = useState(null);
+
+    useEffect(() => {
+        const cargaDatos = async () => {
+            try {
+                const datosServicios = await fetchData('rutas_t', 'nombre,descripcion,foto,departamento,municipio', {campo: 'departamento', valor: 'Cundinamarca'});
+                setServicios(datosServicios);
+
+            } catch(error) {
+                console.error('Error al cargar datos:', error);
+                alert('Error al cargar datos');
+            }
+        };
+
+        cargaDatos(); 
+        const interval = setInterval(cargaDatos, 5000); 
+        return () => clearInterval(interval); 
+    }, []);
+
+    const handleVerMas = (service) => {
+        setSelectedService(service);
+    };
+
+    const renderItem = ({ item }) => (
+        <View style={styles.itemContainerVertical}>
+            <Image source={{ uri: item.foto }} style={styles.imageVertical} />
+            <View style={styles.serviceInfo}>
+                <Text style={styles.serviceName}>{item.nombre}</Text>
+                <Text style={styles.serviceDirec}>{item.descripcion}</Text>
+                <Text style={styles.serviceDirec}>{item.departamento + "-" + item.municipio}</Text>
+            </View>
+            <View style={styles.buttonContainer}>
+                <Ionicons name="chevron-forward" size={24} color="black" style={styles.icon} />
+                <Button title="Ver más" style={styles.button} onPress={() => handleVerMas(item)} />  
+            </View>
+        </View>
+    );
+
+    return (
+        <View style={styles.container}>
+            <FlatList
+                data={servicios}
+                renderItem={renderItem}
+                keyExtractor={(item, index) => index.toString()} 
+            />
+            {selectedService && (
+                <View style={styles.selectedServiceContainer}>
+                    <Text style={styles.selectedServiceText}>{`Seleccionaste: ${selectedService.nombe}`}</Text>
+                </View>
+            )}
+        </View>
+    );
+};
+
+
+
+
+//------------>CAMBIAR CHEACKBOX POR UN BOTON   <----------------
+
+/*const ListaServiciosVertical = () => {
     const [servicios, setServicios] = useState([]);
 
     useEffect(() => {
         const cargaDatos = async () => {
             try {
-                const datosServicios = await fetchData('servicios', 'nombre, foto, informacion, direccion',{campo: '', valor: ''});
+                const datosServicios = await fetchData('rutas_t', 'nombre,descripcion,foto,departamento,municipio', {campo: 'departamento', valor: 'Cundinamarca'});
                 setServicios(datosServicios);
 
             } catch(error) {
@@ -128,7 +192,7 @@ const ListaServiciosVertical = () => {
         updatedServicios[index].selected = !updatedServicios[index].selected;
         setServicios(updatedServicios);
     };
-
+//------------------------------------------------------------------
     const renderItem = ({ item, index }) => (
         <TouchableOpacity onPress={() => toggleSelect(index)}>
             <View style={styles.itemContainerVertical}>
@@ -136,8 +200,8 @@ const ListaServiciosVertical = () => {
                 <View style={styles.serviceInfo}>
                     <Text style={styles.serviceName}>{item.nombre}</Text>
                     {item.selected && <Checkbox />}
-                    <Text style={styles.serviceDirec}>{item.direccion}</Text>
-                    <Text style={styles.serviceInfo}>{item.informacion}</Text>
+                    <Text style={styles.serviceDirec}>{item.descripcion}</Text>
+                    <Text style={styles.serviceDirec}>{item.departamento + "-" + item.municipio}</Text>
                 </View>
             </View>
         </TouchableOpacity>
@@ -160,7 +224,7 @@ const ListaServiciosVertical = () => {
             />
         </View>
     );
-};
+};*/
 
 const Inicio = () => (
     <View style={styles.container}>
@@ -319,6 +383,18 @@ const styles = StyleSheet.create({
         fontSize: 10,
         color: 'gray',
     },
+    buttonContainer: {
+        flexDirection: 'row', // Para alinear el icono y el botón horizontalmente
+        alignItems: 'center', // Para centrar verticalmente el icono y el botón
+        justifyContent: 'flex-end', // Para alinearlos a la derecha del contenedor
+    },
+    icon: {
+        marginRight: 5, // Espacio entre el icono y el botón
+    },
+    button: {
+        // Agrega estilos adicionales al botón si es necesario
+    },
+
 });
 
 export default Rutas;

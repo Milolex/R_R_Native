@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import Login from './screens/Login';
 import Register from './screens/Register';
 import Rutas from './screens/Rutas';
+import Detalle_Ruta from './screens/Detalle_Ruta';
 
 
 export default function App() {
@@ -23,6 +24,11 @@ export default function App() {
             }
           />
           <Stack.Screen name="Rutas" component={Rutas} 
+            options={
+              {headerShown: false}
+            }
+          />
+          <Stack.Screen name="Detalle_Ruta" component={Detalle_Ruta} 
             options={
               {headerShown: false}
             }
