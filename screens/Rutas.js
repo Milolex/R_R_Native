@@ -4,8 +4,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons'; 
 import CabeCompo from './CabeCompo';
 import { fetchData } from '../SupaConsult';
-
-
+import { useNavigation } from '@react-navigation/native';
+import StarRating from './StarRating';
 
 const windowHeight = Dimensions.get('window').height;
 const rectangleHeight = windowHeight / 2;
@@ -86,7 +86,7 @@ const ListaServicios = () => {
 
     const renderItem = ({ item }) => (
         <View style={styles.itemContainer}>
-            <Image source={{ uri: item.foto }} style={styles.image} />
+            <Image source={{ uri: item.imagen }} style={styles.image} />
             <Text>{item.nombre}</Text>
         </View>
     );
@@ -113,7 +113,7 @@ const ListaServiciosVertical = () => {
     useEffect(() => {
         const cargaDatos = async () => {
             try {
-                const datosServicios = await fetchData('rutas_t', 'nombre,descripcion,foto,departamento,municipio', {campo: 'departamento', valor: 'Cundinamarca'});
+                const datosServicios = await fetchData('rutas_t', 'id,nombre,descripcion,foto,departamento,municipio,calificacion', {campo: 'departamento', valor: 'Cundinamarca'});
                 setServicios(datosServicios);
 
             } catch(error) {
@@ -141,12 +141,16 @@ const ListaServiciosVertical = () => {
             </View>
             <View style={styles.buttonContainer}>
                 <Ionicons name="chevron-forward" size={24} color="black" style={styles.icon} />
-                <Button title="Ver más" style={styles.button} onPress={() => handleVerMas(item)} />  
+                <Button title="Ver más" onPress={() =>{
+                    navigation.navigate('Detalle_Ruta', {service: item});
+                }} />
+                <StarRating rating={item.calificacion} />
             </View>
         </View>
     );
-
+    const navigation = useNavigation();
     return (
+        
         <View style={styles.container}>
             <FlatList
                 data={servicios}
@@ -155,76 +159,13 @@ const ListaServiciosVertical = () => {
             />
             {selectedService && (
                 <View style={styles.selectedServiceContainer}>
-                    <Text style={styles.selectedServiceText}>{`Seleccionaste: ${selectedService.nombe}`}</Text>
+                    <Text style={styles.selectedServiceText}>{`Seleccionaste: ${selectedService.nombre}`}</Text>
                 </View>
             )}
         </View>
     );
 };
 
-
-
-
-//------------>CAMBIAR CHEACKBOX POR UN BOTON   <----------------
-
-/*const ListaServiciosVertical = () => {
-    const [servicios, setServicios] = useState([]);
-
-    useEffect(() => {
-        const cargaDatos = async () => {
-            try {
-                const datosServicios = await fetchData('rutas_t', 'nombre,descripcion,foto,departamento,municipio', {campo: 'departamento', valor: 'Cundinamarca'});
-                setServicios(datosServicios);
-
-            } catch(error) {
-                console.error('Error al cargar datos:', error);
-                alert('Error al cargar datos');
-            }
-        };
-
-        cargaDatos(); 
-
-        const interval = setInterval(cargaDatos, 5000); 
-        return () => clearInterval(interval); 
-    }, []);
-    const toggleSelect = (index) => {
-        const updatedServicios = [...servicios];
-        updatedServicios[index].selected = !updatedServicios[index].selected;
-        setServicios(updatedServicios);
-    };
-//------------------------------------------------------------------
-    const renderItem = ({ item, index }) => (
-        <TouchableOpacity onPress={() => toggleSelect(index)}>
-            <View style={styles.itemContainerVertical}>
-                <Image source={{ uri: item.foto }} style={styles.imageVertical} />
-                <View style={styles.serviceInfo}>
-                    <Text style={styles.serviceName}>{item.nombre}</Text>
-                    {item.selected && <Checkbox />}
-                    <Text style={styles.serviceDirec}>{item.descripcion}</Text>
-                    <Text style={styles.serviceDirec}>{item.departamento + "-" + item.municipio}</Text>
-                </View>
-            </View>
-        </TouchableOpacity>
-    );
-
-    const Checkbox = () => (
-        <View style={styles.checkboxContainer}>
-            <View style={styles.checkbox}></View>
-        </View>
-    );
-    
-
-    
-    return (
-        <View style={styles.container}>
-            <FlatList
-                data={servicios}
-                renderItem={renderItem}
-                keyExtractor={(item, index) => index.toString()} 
-            />
-        </View>
-    );
-};*/
 
 const Inicio = () => (
     <View style={styles.container}>
@@ -247,6 +188,7 @@ const Guias = () => (
 const Tab = createBottomTabNavigator();
 
 const Rutas = () => {
+    
     return (
         <Tab.Navigator initialRouteName='Inicio'>
             <Tab.Screen name="Rutas" component={Rute} 

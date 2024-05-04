@@ -175,8 +175,8 @@ const styles = StyleSheet.create({
         position:'absolute',
         bottom:0,
         right:0,
-       marginBottom:20,
+        marginBottom:20,
 
-       marginRight:15,
+        marginRight:15,
     },    
 });

@@ -1,10 +1,52 @@
-import { StyleSheet, Text, View, Dimensions, TextInput, Button, TouchableOpacity ,PixelRatio } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, Dimensions, ImageBackground, ScrollView } from 'react-native';
+import CabeCompo from './CabeCompo';
+import ListaActividades from './Lista_Actividades';
+import { fetchData } from '../SupaConsult';
 
+export default function DetalleRuta({ route }) {
+    const { service } = route.params;
+    const windowHeight = Dimensions.get('window').height;
+    const idRuta = service.id;
+    const [servicios, setServicios] = useState([]);
 
-export default function Detalle_Ruta() {
+    useEffect(() => {
+        const cargaDatos = async () => {
+            try {
+                const datosServicios = await fetchData('rutas_t', 'act_1,act_2,act_3,act_4,act_5,act_6,act_7,act_8,act_9', {campo: 'id', valor: idRuta});
+                
+                // Obtener los nombres de las actividades correspondientes a cada campo act_X
+                const actividadesPromises = Object.keys(datosServicios[0]).slice(0).map(async (campo) => {
+                    const actividad = await fetchData('actividades', 'nombre, descripcion, imagen', {campo: 'id', valor: datosServicios[0][campo]});
+                    return actividad[0];
+                });
+
+                const actividades = await Promise.all(actividadesPromises);
+                setServicios(actividades);
+            } catch (error) {
+                console.error('Error al cargar datos:', error.message);
+                alert('Error al cargar datos');
+            }
+        };
+
+        cargaDatos();
+
+        
+    }, [idRuta]);
+    
     return (
         <View style={styles.container}>
             
+            <ScrollView style={styles.scrollContainer}>
+                <CabeCompo />
+                <ImageBackground source={{ uri: service.foto }} style={styles.imageBackground}></ImageBackground>
+                <View style={styles.contentContainer}>
+                    <Text style={styles.title}>{service.nombre}</Text>
+                    <Text style={styles.description}>{service.descripcion}</Text> 
+                    <Text style={styles.subtitle}>ACTIVIDADES</Text>
+                    <ListaActividades servicios={servicios} />
+                </View>
+            </ScrollView>
         </View>
     );
 }
@@ -13,7 +55,35 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#fff',
-        alignItems: 'center',
-        justifyContent: 'center',
-    }  
+    },
+    scrollContainer: {
+        flexGrow: 1,
+    },
+    imageBackground: {
+        width: Dimensions.get('window').width - 20,
+        height: Dimensions.get('window').height / 3,
+        marginLeft: 10,
+        marginTop: 120,
+        borderBottomRightRadius: 50,
+        borderBottomLeftRadius: 50,
+        overflow: 'hidden',
+    },
+    contentContainer: {
+        paddingHorizontal: 20,
+        paddingTop: 20,
+    },
+    title: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    description: {
+        fontSize: 16,
+        marginBottom: 20,
+    },
+    subtitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
 });

@@ -33,6 +33,7 @@ export default function App() {
               {headerShown: false}
             }
           />
+          
         </Stack.Navigator>
       </NavigationContainer>
     </View>
