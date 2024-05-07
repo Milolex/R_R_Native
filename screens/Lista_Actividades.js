@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, ImageBackground, FlatList, StyleSheet, TouchableOpacity, Alert, Button } from 'react-native';
-import {restaurar} from '../SupaConsult';
+import {insertData} from '../SupaConsult';
 
 export default function ListaActividades({ servicios }) {
     const [selectedItems, setSelectedItems] = useState(Array(servicios.length).fill(false));
@@ -17,18 +17,23 @@ export default function ListaActividades({ servicios }) {
 
     const agendar = () => {
         const notSelectedActivities = servicios.filter((item, index) => !selectedItems[index]);
+
+
+
+        
+
+
+
         if (notSelectedActivities.length === 0) {
             alert("No se seleccionaron rutas");
             return;
         } else {
-            console.log("Actividades no seleccionadas:");
+            
             notSelectedActivities.forEach(item => {
-                alert(item.nombre);
-
-                //restaurar();
-
-
-                //const { data, error } = await supabase.auth.reauthenticate()
+                
+                
+                
+                
             });
         }
     };

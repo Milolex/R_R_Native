@@ -88,6 +88,7 @@ export default function Register() {
                     onPress={async() => {
                         if (credentials.password === credentials.confirmPass){
                             try{
+                                
                                 await CrearUsuario(credentials.email, credentials.password)
                                 const { data } = await LoginUsuario(credentials.email, credentials.password)
                                 const uuid = data.user.id

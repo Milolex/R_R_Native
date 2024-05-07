@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, Dimensions, ImageBackground, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, Dimensions, ImageBackground, ScrollView , TouchableOpacity, Button } from 'react-native';
 import CabeCompo from './CabeCompo';
 import ListaActividades from './Lista_Actividades';
-import { fetchData,insertData} from '../SupaConsult';
+import { fetchData, insertData } from '../SupaConsult';
 
 export default function DetalleRuta({ route }) {
     const { service } = route.params;
@@ -14,7 +14,6 @@ export default function DetalleRuta({ route }) {
         const cargaDatos = async () => {
             try {
                 const datosServicios = await fetchData('rutas_t', 'act_1,act_2,act_3,act_4,act_5,act_6,act_7,act_8,act_9', {campo: 'id', valor: idRuta});
-                
                 
                 const actividadesPromises = Object.keys(datosServicios[0]).slice(0).map(async (campo) => {
                     const actividad = await fetchData('actividades', 'nombre, descripcion, imagen,hora_inicio,hora_fin', {campo: 'id', valor: datosServicios[0][campo]});
@@ -30,13 +29,10 @@ export default function DetalleRuta({ route }) {
         };
 
         cargaDatos();
-
-        
     }, [idRuta]);
     
     return (
         <View style={styles.container}>
-            
             <ScrollView style={styles.scrollContainer}>
                 <CabeCompo />
                 <ImageBackground source={{ uri: service.foto }} style={styles.imageBackground}></ImageBackground>
@@ -44,10 +40,10 @@ export default function DetalleRuta({ route }) {
                     <Text style={styles.title}>{service.nombre}</Text>
                     <Text style={styles.description}>{service.descripcion}</Text>
                     <Text style={styles.description}>{"Conductor designado: "}</Text>
-                    <Text style={styles.description}>Si deseas elimnar alguna activad puedes colocar tu dedo encima de
-                    ella para eliminarla.</Text>
+                    <Text style={styles.description}>Si deseas eliminar alguna actividad puedes colocar tu dedo encima de ella para eliminarla.</Text>
                     <Text style={styles.subtitle}>ACTIVIDADES</Text>
                     <ListaActividades servicios={servicios} />
+                    
                 </View>
             </ScrollView>
         </View>

@@ -3,12 +3,13 @@ import { StyleSheet, View, Text, FlatList, Dimensions, Image ,TouchableOpacit, B
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons'; 
 import CabeCompo from './CabeCompo';
-import { fetchData } from '../SupaConsult';
+import { fetchData, insertData, obtenerUsserUid} from '../SupaConsult';
 import { useNavigation } from '@react-navigation/native';
 import StarRating from './StarRating';
 
 const windowHeight = Dimensions.get('window').height;
 const rectangleHeight = windowHeight / 2;
+
 
 const Rute = () => (
     <View style={styles.container}>
@@ -165,7 +166,7 @@ const ListaServiciosVertical = () => {
     useEffect(() => {
         const cargaDatos = async () => {
             try {
-                const datosServicios = await fetchData('rutas_t', 'id,nombre,descripcion,foto,departamento,municipio,calificacion', {campo: 'departamento', valor: 'Cundinamarca'});
+                const datosServicios = await fetchData('rutas_t', 'id,hora_Inicio,hora_Final,nombre,descripcion,foto,departamento,municipio,calificacion', {campo: 'departamento', valor: 'Cundinamarca'});
                 setServicios(datosServicios);
 
             } catch(error) {
@@ -197,6 +198,29 @@ const ListaServiciosVertical = () => {
                     navigation.navigate('Detalle_Ruta', {service: item});
                 }} />
                 <StarRating rating={item.calificacion} />
+                <Button title="Agendar" onPress={async () => {
+                    try {
+                        const userUid = await obtenerUsserUid();
+                    
+                        const dato = {
+                            nombre: item.nombre,
+                            hora_Inicio: item.hora_Inicio,
+                            hora_Final: item.hora_Final,
+                            foto: item.foto,
+                            departamento: item.departamento,
+                            municipio: item.municipio,
+                            descripcion: item.descripcion,
+                            reservado: userUid,
+                            id_conductor: '2289a113-8709-4488-b419-040e6ead9858'
+                        };
+                        await insertData('rutas_t', dato); // Asegúrate de esperar a la inserción de datos
+                        alert('Servicio agendado correctamente');
+                    } catch (error) {
+                        console.error('Error al agendar servicio:', error);
+                        alert('Error al agendar servicio');
+                    }
+                }} />
+
             </View>
         </View>
     );

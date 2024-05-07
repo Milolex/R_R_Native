@@ -72,7 +72,6 @@ export async function insertData(nomTB, data){
     const { error } = await supabase
         .from(nomTB)
         .insert(data)
-        .order('calificacion', { ascending: false})
     if (error) {
         alert('Error al insertar datos')
     }else {
