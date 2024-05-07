@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, Dimensions, ImageBackground, ScrollView } from 'react-native';
 import CabeCompo from './CabeCompo';
 import ListaActividades from './Lista_Actividades';
-import { fetchData } from '../SupaConsult';
+import { fetchData,insertData} from '../SupaConsult';
 
 export default function DetalleRuta({ route }) {
     const { service } = route.params;
