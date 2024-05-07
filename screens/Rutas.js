@@ -63,6 +63,58 @@ const ListaRutas = () => {
     );
 };
 
+
+
+
+
+
+const ListaUsuarios = () => {
+    const [servicios, setServicios] = useState([]);
+
+    useEffect(() => {
+        const cargaDatos = async () => {
+
+            try {
+
+                let datosServicios = await fetchData('reservas_t', 'id_Conductor',{campo: '', valor: ''});
+                setServicios(datosServicios);
+                
+            } catch(error) {
+                console.error('Error al cargar datos:', error);
+                alert('Error al cargar datos');
+            }
+        };
+
+        cargaDatos(); 
+
+        const interval = setInterval(cargaDatos, 5000); 
+        return () => clearInterval(interval); 
+    }, []);
+
+    const renderItem = ({ item }) => (
+        <View style={styles.itemContainer}>
+            <Text>{item.id_Conductor}</Text>
+        </View>
+    );
+
+    return (
+        <View style={styles.container}>
+            <Text style={styles.titleService}>Servicios Populares</Text>
+            <FlatList
+                horizontal
+                data={servicios}
+                renderItem={renderItem}
+                keyExtractor={(item, index) => index.toString()} 
+            />
+        </View>
+    );
+};
+
+
+
+
+
+
 const ListaServicios = () => {
     const [servicios, setServicios] = useState([]);
 
@@ -179,9 +231,75 @@ const Inicio = () => (
     </View>
 );
 
+
+
+const ListaGuias = () => {
+    const [guias, setGuias] = useState([]);
+    const [carro, setCarro] = useState([]);
+    const [selectedGuia, setSelectedGuia] = useState(null);
+
+    useEffect(() => {
+        const cargaDatos = async () => {
+            try {
+
+                
+                const datosGuias = await fetchData('conductores', 'nombre,apellido,imagen,clase,licencia,calificacion,telefono,id_vehiculo', {campo: 'tipo', valor: 1});
+                //const datosCarro = await fetchData('vehiculos', 'placa,color,cedula', {campo: 'id', valor: '13693452-0d6f-4117-aaf9-1262aaea4e82'});
+                setGuias(datosGuias);
+                //setCarro(datosCarro);
+            } catch(error) {
+                console.error('Error al cargar datos:', error);
+                alert('Error al cargar datos');
+            }
+        };
+
+        cargaDatos(); 
+        const interval = setInterval(cargaDatos, 5000); 
+        return () => clearInterval(interval); 
+    }, []);
+
+    const handleVerMas = (guia) => {
+        setSelectedGuia(guia);
+    };
+
+    const renderItem = ({ item }) => (
+        <View style={styles.itemContainerGuia}>
+            <View style={styles.imageContainer}>
+                <Image source={{ uri: item.imagen }} style={styles.imageGuia} />
+            </View>
+            <View style={styles.contentContainer}>
+                <View style={styles.serviceInfoGuia}>
+                    <Text style={styles.serviceNameGuia}>{item.nombre} {item.apellido}</Text>
+                    <Text style={styles.descripcion}>Tipo Vehículo: {item.clase}</Text>
+                    <Text style={styles.descripcion}>Cedula: {item.licencia}</Text>
+
+                    <Text style={styles.descripcion}>Telefono: {item.telefono}</Text>
+                    <StarRating rating={item.calificacion} />
+                </View>
+            </View>
+        </View>
+    );
+
+    return (
+        <View style={styles.container}>
+            <FlatList
+                data={guias}
+                renderItem={renderItem}
+                keyExtractor={(item, index) => index.toString()} 
+            />
+        </View>
+    );
+};
+
+
 const Guias = () => (
-    <View style={styles.inicio}>
-        <CabeCompo/>
+    <View style={styles.container}>
+        <View style={styles.inicio}>
+            <CabeCompo/>
+        </View>
+        <Text style={styles.titBienvenido}>Guias</Text>
+        <Text style={styles.descServi}>Conoce nuestros guias, los cuales te brindaran la mejor experiencia.</Text>
+        <ListaGuias />
     </View>
 );
 
@@ -335,6 +453,35 @@ const styles = StyleSheet.create({
     },
     button: {
         // Agrega estilos adicionales al botón si es necesario
+    },
+
+
+    itemContainerGuia: {
+        marginTop: 10,
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        padding: 10,
+        borderBottomWidth: 0.5,
+        borderBottomColor: '#ccc'
+    },
+    imageGuia: {
+        width: 100,
+        height: 100,
+        marginRight: 50,
+        borderRadius: 50,
+    },
+    serviceNameGuia: {
+        marginTop: 10,
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    serviceInfoGuia: {
+        marginTop: 5,
+    },
+    serviceDirecGuia: {
+        marginTop: 5,
+        fontSize: 12,
+        color: 'gray',
     },
 
 });

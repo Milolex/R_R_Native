@@ -92,13 +92,13 @@ export default function Register() {
                                 const { data } = await LoginUsuario(credentials.email, credentials.password)
                                 const uuid = data.user.id
                                 const dato = {
-                                    uuid: uuid,
-                                    firstname: credentials.firstName,
-                                    secondname: credentials.secondName,
-                                    firstlastname: credentials.firstLastName,
-                                    secondlastname: credentials.secondLastName,
+                                    id: uuid,
+                                    nombre: credentials.firstName ,
+                                    apellido: credentials.firstLastName,
+                                    correo: credentials.email,
+                                    tipo: 1,
                                 }
-                                await insertData('userdat', dato)
+                                await insertData('conductores', dato)
                                 navigation.navigate('Rutas');
                             }catch(e){
                                 alert(e)

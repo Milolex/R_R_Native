@@ -1,24 +1,34 @@
 import React, { useState } from 'react';
 import { View, Text, ImageBackground, FlatList, StyleSheet, TouchableOpacity, Alert, Button } from 'react-native';
+import {restaurar} from '../SupaConsult';
 
 export default function ListaActividades({ servicios }) {
     const [selectedItems, setSelectedItems] = useState(Array(servicios.length).fill(false));
 
     const toggleCheckbox = (index) => {
-        const newSelectedItems = [...selectedItems];
-        newSelectedItems[index] = !newSelectedItems[index];
-        setSelectedItems(newSelectedItems);
+        if (index !== 0 && index !== servicios.length - 1) {
+            const newSelectedItems = [...selectedItems];
+            newSelectedItems[index] = !newSelectedItems[index];
+            setSelectedItems(newSelectedItems);
+        }else{
+            alert("Este elemento no se puede eliminar");
+        }
     };
 
     const agendar = () => {
         const notSelectedActivities = servicios.filter((item, index) => !selectedItems[index]);
-
         if (notSelectedActivities.length === 0) {
+            alert("No se seleccionaron rutas");
             return;
         } else {
             console.log("Actividades no seleccionadas:");
             notSelectedActivities.forEach(item => {
-                console.log(item.nombre);
+                alert(item.nombre);
+
+                //restaurar();
+
+
+                //const { data, error } = await supabase.auth.reauthenticate()
             });
         }
     };
@@ -35,13 +45,14 @@ export default function ListaActividades({ servicios }) {
         return (
             <TouchableOpacity onPress={() => toggleCheckbox(index)}>
                 <View style={styles.itemContainer}>
-                    {/* Aplicar borde redondeado a la imagen */}
                     <View style={styles.imageContainer}>
                         <ImageBackground source={{ uri: item.imagen }} style={styles.image}></ImageBackground>
                     </View>
                     <View style={styles.textContainer}>
                         <Text style={styles.title}>{item.nombre}</Text>
                         <Text style={styles.description}>{item.descripcion}</Text>
+                        <Text style={styles.description}>{"(Esta actividad inicia a las: "+item.hora_inicio+" y finaliza a las: "+ item.hora_fin+")"}</Text>
+                        
                     </View>
                     <View style={styles.checkboxContainer}>
                         {selectedItems[index] && <View style={styles.checkboxChecked}></View>}
@@ -77,8 +88,8 @@ const styles = StyleSheet.create({
     imageContainer: {
         width: 50,
         height: 50,
-        borderRadius: 25, // Hacer que el contenedor de la imagen sea redondo
-        overflow: 'hidden', // Aplicar recorte de imagen para que sea visible dentro del contenedor redondeado
+        borderRadius: 25, 
+        overflow: 'hidden', 
     },
     image: {
         width: '100%',

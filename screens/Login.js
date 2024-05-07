@@ -61,8 +61,10 @@ export default function Login() {
                     style={styles.botonRegistrar}
                     onPress={() => {
                         LoginUsuario(credentials.email, credentials.password);
-                        
+                    
                         navigation.navigate('Rutas');
+                        
+                        
                     }}
                     >
                 <Text style={styles.botonText}>Iniciar</Text>

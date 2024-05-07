@@ -5,8 +5,7 @@ import Login from './screens/Login';
 import Register from './screens/Register';
 import Rutas from './screens/Rutas';
 import Detalle_Ruta from './screens/Detalle_Ruta';
-
-
+import Perfil from './screens/Perfil';
 export default function App() {
   const Stack = createStackNavigator();
   return (
@@ -29,6 +28,12 @@ export default function App() {
             }
           />
           <Stack.Screen name="Detalle_Ruta" component={Detalle_Ruta} 
+            options={
+              {headerShown: false}
+            }
+          />
+
+          <Stack.Screen name="Perfil" component={Perfil}
             options={
               {headerShown: false}
             }

@@ -15,9 +15,9 @@ export default function DetalleRuta({ route }) {
             try {
                 const datosServicios = await fetchData('rutas_t', 'act_1,act_2,act_3,act_4,act_5,act_6,act_7,act_8,act_9', {campo: 'id', valor: idRuta});
                 
-                // Obtener los nombres de las actividades correspondientes a cada campo act_X
+                
                 const actividadesPromises = Object.keys(datosServicios[0]).slice(0).map(async (campo) => {
-                    const actividad = await fetchData('actividades', 'nombre, descripcion, imagen', {campo: 'id', valor: datosServicios[0][campo]});
+                    const actividad = await fetchData('actividades', 'nombre, descripcion, imagen,hora_inicio,hora_fin', {campo: 'id', valor: datosServicios[0][campo]});
                     return actividad[0];
                 });
 
@@ -42,7 +42,10 @@ export default function DetalleRuta({ route }) {
                 <ImageBackground source={{ uri: service.foto }} style={styles.imageBackground}></ImageBackground>
                 <View style={styles.contentContainer}>
                     <Text style={styles.title}>{service.nombre}</Text>
-                    <Text style={styles.description}>{service.descripcion}</Text> 
+                    <Text style={styles.description}>{service.descripcion}</Text>
+                    <Text style={styles.description}>{"Conductor designado: "}</Text>
+                    <Text style={styles.description}>Si deseas elimnar alguna activad puedes colocar tu dedo encima de
+                    ella para eliminarla.</Text>
                     <Text style={styles.subtitle}>ACTIVIDADES</Text>
                     <ListaActividades servicios={servicios} />
                 </View>
