@@ -1,11 +1,8 @@
 import { StyleSheet, Text, View, Dimensions, TextInput, Button, TouchableOpacity ,PixelRatio } from 'react-native';
 import LottieView from 'lottie-react-native';
 import React, { useState } from 'react';
-import { login_Usser , fetch_Data} from '../SupaConsult';
-
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LoginUsuario } from '../SupaConsult';
 import { useNavigation } from '@react-navigation/native';
-
 
 export default function Login() {
     const windowHeight = Dimensions.get('window').height;
@@ -54,11 +51,7 @@ export default function Login() {
                 <TouchableOpacity
                     style={styles.botonLogin}
                     onPress={() => {
-
-
-                        alert('si');
-                        
-                        //navigation.navigate('Register');
+                        navigation.navigate('Register');
                     
                     }}
                 >
@@ -66,19 +59,13 @@ export default function Login() {
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.botonRegistrar}
-                    onPress={async () => {  // Marca la función como async
-                        try {
-                            await login_Usser(credentials.email, credentials.password); // Espera a que login_Usser se complete
-                            const userUid = await AsyncStorage.getItem('usserUid'); // Espera a que el valor de AsyncStorage se obtenga
-                            alert(userUid);
-                            const datosRutas = await fetchData('inf_usuarios_t', 'username', {campo: 'uid', valor: userUid});
-                            alert(datosRutas);
-                            
-                        } catch (error) {
-                            alert('Error al iniciar sesión');
-                        }
+                    onPress={() => {
+                        LoginUsuario(credentials.email, credentials.password);
+                    
+                        navigation.navigate('Rutas');
+                        
+                        
                     }}
-
                     >
                 <Text style={styles.botonText}>Iniciar</Text>
 
