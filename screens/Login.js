@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, Dimensions, TextInput, Button, TouchableOpacity ,PixelRatio } from 'react-native';
 import LottieView from 'lottie-react-native';
 import React, { useState } from 'react';
-import { login_Usser , fetch_Data} from '../SupaConsult';
+import { login_Usser, fetch_Data} from '../SupaConsult';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -56,27 +56,44 @@ export default function Login() {
                     onPress={() => {
 
 
-                        alert('si');
+                        navigation.navigate('Register');
                         
-                        //navigation.navigate('Register');
                     
                     }}
                 >
                 <Text style={styles.botonText}>Registar</Text>
                 </TouchableOpacity>
+
+
+
+
+
                 <TouchableOpacity
                     style={styles.botonRegistrar}
-                    onPress={async () => {  // Marca la función como async
+                    onPress={async () => { 
+                        await login_Usser(credentials.email, credentials.password); 
+                        const uuid = await AsyncStorage.getItem('userUid');  
                         try {
-                            await login_Usser(credentials.email, credentials.password); // Espera a que login_Usser se complete
-                            const userUid = await AsyncStorage.getItem('usserUid'); // Espera a que el valor de AsyncStorage se obtenga
-                            alert(userUid);
-                            const datosRutas = await fetchData('inf_usuarios_t', 'username', {campo: 'uid', valor: userUid});
-                            alert(datosRutas);
-                            
-                        } catch (error) {
-                            alert('Error al iniciar sesión');
+                            const condicion = { campo: 'uid', valor: uuid };
+                            const usuario = await fetch_Data('inf_usuarios_t', 'tipoUser', condicion);
+                            if (usuario && usuario.length > 0) {
+                                const tipoUser = usuario[0].tipoUser;
+                                await AsyncStorage.setItem('rol', tipoUser);  
+                            } else {
+                                alert('No se encontraron datos.');
+                            }
+
+                        } catch (e) {
+                            alert('Error al recuperar los datos: ' + e.message);
                         }
+                        
+                        const rol = await AsyncStorage.getItem('rol');
+                        if (rol == 'Conductor'){
+                            navigation.navigate('Conductor');
+                        }else{
+                            navigation.navigate('Rutas');
+                        }
+                        
                     }}
 
                     >
@@ -157,7 +174,7 @@ const styles = StyleSheet.create({
         bottom:0,
         alignItems:'center',
         justifyContent:'center',
-        marginBottom:60,
+        marginBottom:90,
         marginRight:50,
     },
     botonRegistrar: {
@@ -171,7 +188,7 @@ const styles = StyleSheet.create({
         justifyContent:'center',
         marginLeft:50,
         bottom:0,
-        marginBottom:60,
+        marginBottom:90,
     },
     botonText: {
         fontSize: 10,
@@ -181,7 +198,7 @@ const styles = StyleSheet.create({
         width: "100%",
         height: "5%",
         position:'absolute',
-        bottom:0,
+        bottom:20,
         right:0,
     },
     buttonTextOlvt: {

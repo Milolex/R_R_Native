@@ -10,25 +10,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 
 
-
-export async function get_UsserUid() {
-    try {
-        const usserUid = await AsyncStorage.getItem('usserUid');
-        const id = usserUid;
-        
-        
-
-        return usserUid;
-    } catch (error) {
-        console.error('Error al obtener usserUid:', error);
-        return null;
-    }
-}
-
-
-
-export async function login_Usser(email, password){
-
+export async function login_Usser(email, password) {
     const { data, error } = await supabase.auth.signInWithPassword({
         email: email,
         password: password,
@@ -39,18 +21,16 @@ export async function login_Usser(email, password){
     } else {
         alert('Inicio de sesión exitoso');
         const userUid = data.user.id;
+        await AsyncStorage.setItem('userUid', userUid);
+
         
-        try {
-            await AsyncStorage.setItem('userUid', userUid);   
-            
-        } catch (e) {
-            alert('Error al guardar en AsyncStorage: ' + e.message);
-        }
-    
+        
         return { data: data };
     }
-    
 }
+
+
+
 
 export async function fetch_Data(nomTB, datos, condicion) {
     try {
@@ -58,7 +38,6 @@ export async function fetch_Data(nomTB, datos, condicion) {
             .from(nomTB)
             .select(datos)
             .eq(condicion.campo, condicion.valor)
-            .order('calificacion', { ascending: false})
         return data
 
 
@@ -66,6 +45,31 @@ export async function fetch_Data(nomTB, datos, condicion) {
         throw error + 'siiii'
     }
 }
+
+export async function create_User(email, password){
+    const { data, error } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+    })
+    if (error) {
+        alert('Error al crear usuario')
+    }
+
+}
+
+
+
+export async function insert_Data(nomTB, data){
+    const { error } = await supabase
+        .from(nomTB)
+        .insert(data)
+    if (error) {
+        alert('Error al insertar datos')
+    }
+
+}
+
+
 /*
 export async function CrearUsuario(email, password){
     const { data, error } = await supabase.auth.signUp({
@@ -80,17 +84,7 @@ export async function CrearUsuario(email, password){
     }
 }
 
-export async function insertData(nomTB, data){
-    const { error } = await supabase
-        .from(nomTB)
-        .insert(data)
-    if (error) {
-        alert('Error al insertar datos')
-    }else {
-        alert('Datos insertados correctamente')
-    }
 
-}
 
 
 export async function fetchData(nomTB, datos, condicion) {
