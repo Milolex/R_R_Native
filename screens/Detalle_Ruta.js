@@ -1,36 +1,60 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, Dimensions, ImageBackground, ScrollView , TouchableOpacity, Button } from 'react-native';
+import { StyleSheet, View, Text, Dimensions, ImageBackground, ScrollView } from 'react-native';
 import CabeCompo from './CabeCompo';
 import ListaActividades from './Lista_Actividades';
-import { fetch_Data, insert_Data } from '../SupaConsult';
+import { fetch_Data } from '../SupaConsult';
 
 export default function DetalleRuta({ route }) {
     const { service } = route.params;
     const windowHeight = Dimensions.get('window').height;
-    const idRuta = service.id;
+    const idRuta = service.uid_ruta;
     const [servicios, setServicios] = useState([]);
 
     useEffect(() => {
         const cargaDatos = async () => {
             try {
-                const datosServicios = await fetch_Data('ruta_t', 'act_1,act_2,act_3,act_4,act_5,act_6,act_7,act_8,act_9', {campo: 'id', valor: idRuta});
                 
-                const actividadesPromises = Object.keys(datosServicios[0]).slice(0).map(async (campo) => {
-                    const actividad = await fetch_Data('actividades_t', 'nombre, descripcion, photo,hr_inicio,hr_fin', {campo: 'id', valor: datosServicios[0][campo]});
-                    return actividad[0];
+                const datosServicios = await fetch_Data('ruta_t', 'act_1,act_2,act_3,act_4,act_5,act_6,act_7,act_8,act_9', { campo: 'uid_ruta', valor: idRuta });
+
+                
+                if (!datosServicios || datosServicios.length === 0) {
+                    console.error('No se encontraron datos para la ruta proporcionada.');
+                    alert('No se encontraron datos para la ruta proporcionada.');
+                    return;
+                }
+
+
+                
+                const actividadesPromises = Object.keys(datosServicios[0]).map(async (campo) => {
+                    const idActividad = datosServicios[0][campo];
+                    if (idActividad) {  // Verificar que el ID de la actividad no sea nulo o undefined
+                        try {
+                            const actividad = await fetch_Data('actividades_t', 'nombre, descripcion, photo, hr_inicio, hr_fin', { campo: 'uid_actividades', valor: idActividad });
+
+                            return actividad[0];
+                        } catch (fetchError) {
+                            
+                            return null;
+                        }
+                    } else {
+                        
+                        return null;
+                    }
                 });
 
                 const actividades = await Promise.all(actividadesPromises);
-                setServicios(actividades);
-            } catch (error) {
-                console.error('Error al cargar datos:', error.message);
+
+                
+                const actividadesFiltradas = actividades.filter(actividad => actividad);
+                setServicios(actividadesFiltradas);
+            } catch (error) {  
                 alert('Error al cargar datos');
             }
         };
 
         cargaDatos();
     }, [idRuta]);
-    
+
     return (
         <View style={styles.container}>
             <ScrollView style={styles.scrollContainer}>
@@ -43,12 +67,13 @@ export default function DetalleRuta({ route }) {
                     <Text style={styles.description}>Si deseas eliminar alguna actividad puedes colocar tu dedo encima de ella para eliminarla.</Text>
                     <Text style={styles.subtitle}>ACTIVIDADES</Text>
                     <ListaActividades servicios={servicios} />
-                    
                 </View>
             </ScrollView>
         </View>
     );
 }
+
+
 
 const styles = StyleSheet.create({
     container: {

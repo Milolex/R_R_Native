@@ -51,7 +51,7 @@ export default function ListaActividades({ servicios }) {
             <TouchableOpacity onPress={() => toggleCheckbox(index)}>
                 <View style={styles.itemContainer}>
                     <View style={styles.imageContainer}>
-                        <ImageBackground source={{ uri: item.imagen }} style={styles.image}></ImageBackground>
+                        <ImageBackground source={{ uri: item.photo }} style={styles.image}></ImageBackground>
                     </View>
                     <View style={styles.textContainer}>
                         <Text style={styles.title}>{item.nombre}</Text>

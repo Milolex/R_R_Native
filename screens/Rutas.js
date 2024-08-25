@@ -6,6 +6,7 @@ import CabeCompo from './CabeCompo';
 import { fetch_Data, insert_Data} from '../SupaConsult';
 import { useNavigation } from '@react-navigation/native';
 import StarRating from './StarRating';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const windowHeight = Dimensions.get('window').height;
 const rectangleHeight = windowHeight / 2;
@@ -139,7 +140,7 @@ const ListaServicios = () => {
 
     const renderItem = ({ item }) => (
         <View style={styles.itemContainer}>
-            <Image source={{ uri: item.imagen }} style={styles.image} />
+            <Image source={{ uri: item.photo }} style={styles.image} />
             <Text>{item.nombre}</Text>
         </View>
     );
@@ -200,20 +201,30 @@ const ListaServiciosVertical = () => {
                 <StarRating rating={item.calificacion} />
                 <Button title="Agendar" onPress={async () => {
                     try {
-                        const userUid = await AsyncStorage.getItem('userUid');  ;
-                    
+                        const userUid = await AsyncStorage.getItem('userUid'); 
+                        if (!userUid) {
+                            alert('Usuario no encontrado');
+                            return;
+                        }
+
+                        // Obtener la hora actual y formatearla
+                        const now = new Date();
+                        const hours = String(now.getHours()).padStart(2, '0');
+                        const minutes = String(now.getMinutes()).padStart(2, '0');
+                        const seconds = String(now.getSeconds()).padStart(2, '0');
+                        const timeString = `${hours}:${minutes}:${seconds}`;
+
+                        // Crear el objeto de datos
                         const dato = {
-                            nombre: item.nombre,
-                            hora_Inicio: item.hora_Inicio,
-                            hora_Final: item.hora_Final,
-                            foto: item.foto,
-                            departamento: item.departamento,
-                            municipio: item.municipio,
-                            descripcion: item.descripcion,
-                            reservado: userUid,
-                            id_conductor: '2289a113-8709-4488-b419-040e6ead9858'
+                            nombre_actividad: 'h',
+                            hora: timeString,
+                            status: 'Pago en Proceso',
+                            uid_cliente: userUid,
+                            uid_conductor: '444dad7a-4026-4ec8-a233-f28afdad7ec7'
                         };
-                        await insert_Data('rutas_t', dato); // Asegúrate de esperar a la inserción de datos
+
+                        // Llamar a la función de inserción
+                        await insert_Data('carrito_ven_t', dato);
                         alert('Servicio agendado correctamente');
                     } catch (error) {
                         console.error('Error al agendar servicio:', error);
