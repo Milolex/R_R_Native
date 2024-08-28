@@ -199,38 +199,7 @@ const ListaServiciosVertical = () => {
                     navigation.navigate('Detalle_Ruta', {service: item});
                 }} />
                 <StarRating rating={item.calificacion} />
-                <Button title="Agendar" onPress={async () => {
-                    try {
-                        const userUid = await AsyncStorage.getItem('userUid'); 
-                        if (!userUid) {
-                            alert('Usuario no encontrado');
-                            return;
-                        }
-
-                        // Obtener la hora actual y formatearla
-                        const now = new Date();
-                        const hours = String(now.getHours()).padStart(2, '0');
-                        const minutes = String(now.getMinutes()).padStart(2, '0');
-                        const seconds = String(now.getSeconds()).padStart(2, '0');
-                        const timeString = `${hours}:${minutes}:${seconds}`;
-
-                        // Crear el objeto de datos
-                        const dato = {
-                            nombre_actividad: 'h',
-                            hora: timeString,
-                            status: 'Pago en Proceso',
-                            uid_cliente: userUid,
-                            uid_conductor: '444dad7a-4026-4ec8-a233-f28afdad7ec7'
-                        };
-
-                        // Llamar a la función de inserción
-                        await insert_Data('carrito_ven_t', dato);
-                        alert('Servicio agendado correctamente');
-                    } catch (error) {
-                        console.error('Error al agendar servicio:', error);
-                        alert('Error al agendar servicio');
-                    }
-                }} />
+                
 
             </View>
         </View>
@@ -478,15 +447,15 @@ const styles = StyleSheet.create({
         color: 'gray',
     },
     buttonContainer: {
-        flexDirection: 'row', // Para alinear el icono y el botón horizontalmente
-        alignItems: 'center', // Para centrar verticalmente el icono y el botón
-        justifyContent: 'flex-end', // Para alinearlos a la derecha del contenedor
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        justifyContent: 'flex-end', 
     },
     icon: {
-        marginRight: 5, // Espacio entre el icono y el botón
+        marginRight: 5, 
     },
     button: {
-        // Agrega estilos adicionales al botón si es necesario
+       
     },
 
 

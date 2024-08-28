@@ -29,7 +29,7 @@ export default function DetalleRuta({ route }) {
                     const idActividad = datosServicios[0][campo];
                     if (idActividad) {  // Verificar que el ID de la actividad no sea nulo o undefined
                         try {
-                            const actividad = await fetch_Data('actividades_t', 'nombre, descripcion, photo, hr_inicio, hr_fin', { campo: 'uid_actividades', valor: idActividad });
+                            const actividad = await fetch_Data('actividades_t', 'uid_actividades,nombre, descripcion, photo, hr_inicio, hr_fin', { campo: 'uid_actividades', valor: idActividad });
 
                             return actividad[0];
                         } catch (fetchError) {
