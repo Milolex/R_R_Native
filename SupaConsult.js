@@ -69,6 +69,102 @@ export async function insert_Data(nomTB, data){
 
 }
 
+export async function delete_Data(nomTB, condicion){
+    const { error } = await supabase
+        .from(nomTB)
+        .delete()
+        .eq(condicion.campo, condicion.valor)
+    if (error) {
+        alert('Error al insertar datos')
+    }
+
+}
+
+
+const selectImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+        Alert.alert('Permiso para acceder a la galería requerido');
+        return;
+    }
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+    });
+
+    if (!result.cancelled) {
+        const file = {
+            uri: result.uri,
+            type: result.type,
+            name: result.uri.split('/').pop()
+        };
+        try {
+            const uploadResult = await uploadImage(file); // Usa la función de carga de imágenes que ya has implementado
+            if (uploadResult) {
+                console.log('Imagen subida con éxito:', uploadResult);
+            }
+        } catch (error) {
+            console.error('Error al subir la imagen:', error);
+        }
+    }
+};
+
+
+
+
+
+export async function uploadImage(file) {
+    // Asegúrate de que el archivo es una imagen
+    if (!file || !file.uri || !file.uri.startsWith('file://')) {
+        throw new Error('El archivo no es válido o no se puede determinar su tipo.');
+    }
+
+    // Nombre del archivo en el bucket
+    const fileName = `${Date.now()}_${file.name}`;
+
+    // Subir imagen a Supabase Storage
+    const { data, error } = await supabase
+        .storage
+        .from('avatars') // Nombre del bucket
+        .upload(`public/${fileName}`, file.uri, {
+            cacheControl: '3600',
+            upsert: false,
+        });
+
+    if (error) {
+       
+        throw new Error('Error al subir la imagen.');
+    } else {
+        
+        return data; 
+    }
+    //https://piazhwrekcgxbvsyqiwi.supabase.co/storage/v1/object/public/avatars/spublic/1724913250856_IMG_8244.jpg
+    //https://piazhwrekcgxbvsyqiwi.supabase.co/storage/v1/object/public/avatars/public/1724911482661_IMG_7454.jpg
+}
+
+
+
+
+export async function update_Data(nomTB, campoActualizar, nuevoValor, condicion) {
+    try {
+        const { error } = await supabase
+            .from(nomTB) // Nombre de la tabla
+            .update({ [campoActualizar]: nuevoValor }) // Actualiza el campo especificado con el nuevo valor
+            .eq(condicion.campo, condicion.valor); // Condición para seleccionar el registro que se debe actualizar
+        
+        if (error) {
+            throw error; // Lanza el error para que pueda ser capturado por el bloque catch
+        } else {
+            
+        }
+    } catch (error) {
+        console.error('Error al actualizar los datos:', error.message);
+        alert('Error al actualizar los datos.');
+    }
+}
 
 /*
 export async function CrearUsuario(email, password){

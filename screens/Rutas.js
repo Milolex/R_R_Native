@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, FlatList, Dimensions, Image ,TouchableOpacit, B
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons'; 
 import CabeCompo from './CabeCompo';
+import Perfil from './Perfil';
 import { fetch_Data, insert_Data} from '../SupaConsult';
 import { useNavigation } from '@react-navigation/native';
 import StarRating from './StarRating';
@@ -297,12 +298,8 @@ const ListaGuias = () => {
 
 const Guias = () => (
     <View style={styles.container}>
-        <View style={styles.inicio}>
-            <CabeCompo/>
-        </View>
-        <Text style={styles.titBienvenido}>Guias</Text>
-        <Text style={styles.descServi}>Conoce nuestros guias, los cuales te brindaran la mejor experiencia.</Text>
-        <ListaGuias />
+        
+        <Perfil/>
     </View>
 );
 
@@ -328,7 +325,7 @@ const Rutas = () => {
                     ),
                 }}
             />
-            <Tab.Screen name="Guias" component={Guias}
+            <Tab.Screen name="Perfil" component={Guias}
                 options={{
                     headerShown: false,
                     tabBarIcon: ({ color, size }) => (

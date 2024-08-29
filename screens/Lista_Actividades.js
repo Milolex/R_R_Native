@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ImageBackground, FlatList, StyleSheet, TouchableOpacity, Alert, Button } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker'; // Importa el DateTimePicker
 import { insert_Data, fetch_Data } from '../SupaConsult';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RNPickerSelect from 'react-native-picker-select';
@@ -10,6 +11,8 @@ export default function ListaActividades({ servicios }) {
     const [selectedActivity, setSelectedActivity] = useState(null);
     const [conductores, setConductores] = useState([]);
     const [selectedConductor, setSelectedConductor] = useState(null);
+    const [fechaAgendacion, setFechaAgendacion] = useState(new Date()); // Estado para la fecha de agendación
+    const [showDatePicker, setShowDatePicker] = useState(false); // Estado para controlar la visualización del DatePicker
 
     useEffect(() => {
         const fetchConductores = async () => {
@@ -33,7 +36,6 @@ export default function ListaActividades({ servicios }) {
     }, []);
 
     useEffect(() => {
-        // Establecer selectedItems al inicio
         const initialSelection = Array(servicios.length).fill(false);
         if (servicios.length > 0) {
             initialSelection[0] = true; // La primera actividad siempre está seleccionada
@@ -83,7 +85,7 @@ export default function ListaActividades({ servicios }) {
                 uid_conductor: selectedConductor,
                 uid_cliente: userUid,
                 status: 'Pago en Proceso',
-                fecha_reserva: now.toISOString().split('T')[0],
+                fecha_reserva: fechaAgendacion.toISOString().split('T')[0], // Usa la fecha seleccionada
                 nombre_actividad: selectedActivity || '',
                 hora: timeString,
                 act_1: null,
@@ -104,11 +106,9 @@ export default function ListaActividades({ servicios }) {
                 }
             });
 
-            
-
             await insert_Data('carrito_ven_t', dato);
 
-            alert('Actividades agendadas correctamente');
+            alert('Uno de nuestros asesores se comunicará contigo para la respectiva cotización');
         } catch (error) {
             console.error('Error al agendar actividades:', error);
             alert('Error al agendar actividades');
@@ -166,7 +166,36 @@ export default function ListaActividades({ servicios }) {
                 <MaterialCommunityIcons name="chevron-down" size={24} color="gray" style={styles.chevronIcon} />
             </View>
 
-            {/* Botones encima del listado */}
+            {/* Date Picker */}
+            <View style={styles.datePickerContainer}>
+                <View style={styles.selectContainer}>
+                    <Button title="Seleccionar Fecha" onPress={() => setShowDatePicker(true)} />
+                </View>
+                {/* Mostrar la fecha seleccionada */}
+                <Text style={styles.selectedDate}>{fechaAgendacion.toISOString().split('T')[0]}</Text>
+                {showDatePicker && (
+                    <DateTimePicker
+                        value={fechaAgendacion}
+                        mode="date"
+                        display="default"
+                        onChange={(event, selectedDate) => {
+                            setShowDatePicker(false);
+                            if (selectedDate) {
+                                const now = new Date();
+                                now.setHours(0, 0, 0, 0); // Resetea las horas, minutos, segundos y milisegundos para la comparación
+
+                                if (selectedDate < now) {
+                                    Alert.alert("Fecha no válida", "La fecha seleccionada no puede ser menor a la fecha actual.");
+                                } else {
+                                    setFechaAgendacion(selectedDate);
+                                }
+                            }
+                        }}
+                    />
+
+                )}
+            </View>
+
             <View style={styles.buttonContainer}>
                 <Button title="Seleccionar Todas" onPress={seleccionarTodas} />
                 <Button title="Rehacer Actividades" onPress={rehacerListado} />
@@ -258,6 +287,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         fontSize: 16,
         width: '100%',
+    },
     iconContainer: {
         top: 15,
         right: 10,
@@ -266,6 +296,19 @@ const styles = StyleSheet.create({
         position: 'absolute',
         right: 30,
         top: '100%',
-        transform: [{ translateY: -12 }],
+        transform: [{ translateY: -12 }]
+    },
+    datePickerContainer: {
+        flexDirection: 'row', // Alinea los elementos en una fila
+        alignItems: 'center', // Alinea los elementos verticalmente al centro
+        padding: 10,
+    },
+    selectedDate: {
+        marginLeft: 10, // Espacio entre el botón y la fecha seleccionada
+        fontSize: 16,
+        color: 'black',
+    },
+    selectContainer: {
+        alignItems: 'flex-start', // Alinea el botón a la izquierda
     },
 });
