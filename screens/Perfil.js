@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, FlatList, ScrollView, Dimensions, TouchableOpacity, Alert, Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker'; // Librería para seleccionar imágenes
-import { fetch_Data, delete_Data, uploadImage,update_Data} from '../SupaConsult'; // Asegúrate de exportar `uploadImage` desde SupaConsult
+import { fetch_Data, delete_Data, uploadImage, update_Data } from '../SupaConsult'; // Asegúrate de exportar `uploadImage` desde SupaConsult
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { height } = Dimensions.get('window'); // Obtener el alto de la pantalla
@@ -11,16 +11,17 @@ const Perfil = () => {
     const [reservas, setReservas] = useState([]); // Reservas del usuario
     const [selectedImage, setSelectedImage] = useState(null);
     const [fullPath, setFullPath] = useState(null);
+
     useEffect(() => {
         const cargaDatos = async () => {
             try {
                 const uid = await AsyncStorage.getItem('userUid');
-                const datos = await fetch_Data('inf_usuarios_t', 'first_name, first_last_name, correo', { campo: 'uid', valor: uid });
+                const datos = await fetch_Data('inf_usuarios_t', 'first_name, first_last_name, correo, photo_perfil', { campo: 'uid', valor: uid });
                 setDatos(datos);
-                
+
                 const reservas = await fetch_Data('carrito_ven_t', 'nombre_actividad, fecha_reserva, status, uid_compra', { campo: 'uid_cliente', valor: uid });
                 setReservas(reservas);
-                
+
             } catch (error) {
                 console.error('Error al cargar datos:', error);
                 alert('Error al cargar datos');
@@ -77,49 +78,48 @@ const Perfil = () => {
     };
 
     const selectImage = async () => {
-        // Solicita permisos para la biblioteca de imágenes
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
             alert('Lo siento, necesitamos permisos de acceso a la biblioteca de fotos.');
             return;
         }
-
-        // Lanza la biblioteca de imágenes
-        const response = await ImagePicker.launchImageLibraryAsync({ mediaType: 'photo', quality: 1 });
-
-        if (response.cancelled) {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            quality: 1,
+        });
+        if (result.canceled) {
             alert('No seleccionaste ninguna imagen.');
-        } else if (response.errorCode) {
-            alert('Error al seleccionar la imagen: ' + response.errorMessage);
         } else {
-            // Verifica que `response.assets` esté definido y tenga al menos un elemento
-            if (response.assets && response.assets.length > 0) {
-                const asset = response.assets[0];
+            const asset = result.assets[0];
+          // Verifica que la imagen sea JPG o JPEG
+            const fileExtension = asset.uri.split('.').pop().toLowerCase();
+            if (fileExtension === 'jpg' || fileExtension === 'jpeg') {
                 setSelectedImage(asset.uri);
-
-                // Crea el objeto `file` con información de la imagen
+        
                 const file = {
-                    uri: asset.uri,
-                    type: asset.type,
-                    name: asset.fileName || asset.uri.split('/').pop()
+                uri: asset.uri,
+                type: 'image/jpeg',
+                name: asset.fileName || asset.uri.split('/').pop(),
                 };
-
                 try {
-                    const uid = await AsyncStorage.getItem('userUid');
-                    const uploadResponse = await uploadImage(file); // Usa la función de carga de imágenes que ya has implementado
-                    const fullPath = uploadResponse?.path; // Ajusta esto según la estructura exacta del objeto `data` devuelto
-                    setFullPath(fullPath); // Actualiza el estado global
-                    alert('Imagen subida con éxito.');
-                    console.log('FullPath de la imagen:', fullPath);
-                    await update_Data('inf_usuarios_t', 'photo_perfil', fullPath, { campo: 'uid', valor: uid });
+                
+                const uploadResponse = await uploadImage(file);
+                const fullPath = uploadResponse?.path;
+                setFullPath(fullPath); // Actualiza el estado con la URL de la imagen subida
+        
+                alert('Imagen subida con éxito.');
+                
                 } catch (error) {
-                    alert('Error al subir la imagen.');
+                console.error('Error al subir la imagen:', error);
+                alert('Error al subir la imagen.');
                 }
             } else {
-                alert('No se pudo obtener la información de la imagen.');
+                alert('El archivo seleccionado no es una imagen .jpg o .jpeg.');
             }
         }
     };
+    
+    
     
     
 
@@ -131,7 +131,7 @@ const Perfil = () => {
                 <View style={styles.decorativeBackground}>
                     <View style={styles.profileContainer}>
                         <Image
-                            source={{ uri: 'https://piazhwrekcgxbvsyqiwi.supabase.co/storage/v1/object/public/avatars/'+fullPath || 'https://upload.wikimedia.org/wikipedia/commons/b/bf/Foto_Perfil_.jpg' }} // URL de la foto del perfil
+                            source={{ uri: selectedImage || 'https://piazhwrekcgxbvsyqiwi.supabase.co/storage/v1/object/public/avatars/'+fullPath || 'https://upload.wikimedia.org/wikipedia/commons/b/bf/Foto_Perfil_.jpg' }} // URL de la foto del perfil
                             style={styles.profileImage}
                         />
                         <Text style={styles.name}>{primerDato.first_name + ' ' + primerDato.first_last_name || 'Nombre no disponible'}</Text>
