@@ -231,6 +231,9 @@ const Inicio = () => (
         </View>
         <Text style={styles.titBienvenido}>Bienvenido</Text>
         <Text style={styles.titSec}>¿A dónde quieres ir?</Text>
+        <Text style={styles.text}>
+            En este apartado encontrarás de manera informativa todas las rutas y actividades disponibles en nuestra plataforma, según tu ubicación actual. Para la cotización de nuestras rutas, dirígete al apartado "Rutas".
+        </Text>
         <ListaRutas />
         <ListaServicios />
     </View>
@@ -329,7 +332,7 @@ const Rutas = () => {
                 options={{
                     headerShown: false,
                     tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="book" color={color} size={size} />
+                        <Ionicons name="person" color={color} size={size} />
                     ),
                 }}
             />
@@ -369,6 +372,12 @@ const styles = StyleSheet.create({
         fontSize: 25,
         color: 'black',
         marginLeft: 20,
+    },
+    text: {
+        fontSize: 13,
+        color: 'black',
+        marginLeft: 20,
+        marginTop: 8,
     },
     image: {
         width: 80,

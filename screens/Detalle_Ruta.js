@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
         width: Dimensions.get('window').width - 20,
         height: Dimensions.get('window').height / 3,
         marginLeft: 10,
-        marginTop: 120,
+   
         borderBottomRightRadius: 50,
         borderBottomLeftRadius: 50,
         overflow: 'hidden',

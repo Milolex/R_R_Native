@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, Dimensions, TextInput, Button, TouchableOpacity ,PixelRatio } from 'react-native';
 import LottieView from 'lottie-react-native';
 import React, { useState } from 'react';
-import { login_Usser, fetch_Data} from '../SupaConsult';
+import { login_Usser, fetch_Data,close_Sesion} from '../SupaConsult';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';

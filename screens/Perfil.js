@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, FlatList, ScrollView, Dimensions, TouchableOpacity, Alert, Platform } from 'react-native';
-import * as ImagePicker from 'expo-image-picker'; // Librería para seleccionar imágenes
-import { fetch_Data, delete_Data, uploadImage, update_Data } from '../SupaConsult'; // Asegúrate de exportar `uploadImage` desde SupaConsult
+import { View, Text, Image, StyleSheet, FlatList, ScrollView, Dimensions, TouchableOpacity, Alert } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { fetch_Data, delete_Data, uploadImage, update_Data, close_Sesion } from '../SupaConsult';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons'; // Asegúrate de instalar esta dependencia
+import { useNavigation } from '@react-navigation/native'; // Importa useNavigation para la navegación
 
-const { height } = Dimensions.get('window'); // Obtener el alto de la pantalla
+const { height } = Dimensions.get('window');
 
 const Perfil = () => {
+    const navigation = useNavigation();
     const [datos, setDatos] = useState([]); // Datos del perfil
     const [reservas, setReservas] = useState([]); // Reservas del usuario
     const [selectedImage, setSelectedImage] = useState(null);
@@ -29,16 +32,9 @@ const Perfil = () => {
         };
 
         const requestPermissions = async () => {
-            if (Platform.OS === 'ios') {
-                const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-                if (status !== 'granted') {
-                    alert('Lo siento, necesitamos permisos de acceso a la biblioteca de fotos.');
-                }
-            } else if (Platform.OS === 'android') {
-                const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-                if (status !== 'granted') {
-                    alert('Lo siento, necesitamos permisos de acceso a la biblioteca de fotos.');
-                }
+            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (status !== 'granted') {
+                alert('Lo siento, necesitamos permisos de acceso a la biblioteca de fotos.');
             }
         };
 
@@ -46,7 +42,7 @@ const Perfil = () => {
         requestPermissions();
     }, []);
 
-    const eliminarReserva = (uid_compra) => {
+    const eliminarReserva = async (uid_compra) => {
         const reserva = reservas.find(reserva => reserva.uid_compra === uid_compra);
         if (reserva && reserva.status === 'Pago en Proceso') {
             Alert.alert(
@@ -91,57 +87,73 @@ const Perfil = () => {
             alert('No seleccionaste ninguna imagen.');
         } else {
             const asset = result.assets[0];
-          // Verifica que la imagen sea JPG o JPEG
             const fileExtension = asset.uri.split('.').pop().toLowerCase();
             if (fileExtension === 'jpg' || fileExtension === 'jpeg') {
                 setSelectedImage(asset.uri);
-        
+
                 const file = {
-                uri: asset.uri,
-                type: 'image/jpeg',
-                name: asset.fileName || asset.uri.split('/').pop(),
+                    uri: asset.uri,
+                    type: 'image/jpeg',
+                    name: asset.fileName || asset.uri.split('/').pop(),
                 };
                 try {
-                
-                const uploadResponse = await uploadImage(file);
-                const fullPath = uploadResponse?.path;
-                setFullPath(fullPath); // Actualiza el estado con la URL de la imagen subida
-        
-                alert('Imagen subida con éxito.');
-                
+                    const uploadResponse = await uploadImage(file);
+                    const newFullPath = uploadResponse?.path;
+                    setFullPath(newFullPath); // Actualiza el estado con la URL de la imagen subida
+
+                    alert('Imagen subida con éxito.');
+
+                    // Actualiza la imagen en el perfil
+                    const uid = await AsyncStorage.getItem('userUid');
+                    await update_Data('inf_usuarios_t', 'photo_perfil', newFullPath, { campo: 'uid', valor: uid });
+
+                    // Vuelve a cargar los datos del perfil para reflejar el cambio
+                    const updatedDatos = await fetch_Data('inf_usuarios_t', 'first_name, first_last_name, correo, photo_perfil', { campo: 'uid', valor: uid });
+                    setDatos(updatedDatos);
                 } catch (error) {
-                console.error('Error al subir la imagen:', error);
-                alert('Error al subir la imagen.');
+                    console.error('Error al subir la imagen:', error);
+                    alert('Error al subir la imagen.');
                 }
             } else {
                 alert('El archivo seleccionado no es una imagen .jpg o .jpeg.');
             }
         }
     };
-    
-    
-    
-    
+
+    const cerrarSesion = async () => {
+        try {
+            
+            await close_Sesion(); // Llama a la función de cierre de sesión
+            await AsyncStorage.removeItem('userUid'); // Elimina el UID del almacenamiento
+            navigation.navigate('Login'); // Navega a la pantalla de inicio de sesión
+        } catch (error) {
+            console.error('Error al cerrar sesión:', error);
+            alert('Error al cerrar sesión');
+        }
+    };
 
     const primerDato = datos.length > 0 ? datos[0] : {};
+    const profileImageUrl = primerDato.photo_perfil || 'https://upload.wikimedia.org/wikipedia/commons/b/bf/Foto_Perfil_.jpg';
 
     return (
         <View style={styles.container}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <View style={styles.decorativeBackground}>
                     <View style={styles.profileContainer}>
-                        <Image
-                            source={{ uri: selectedImage || 'https://piazhwrekcgxbvsyqiwi.supabase.co/storage/v1/object/public/avatars/'+fullPath || 'https://upload.wikimedia.org/wikipedia/commons/b/bf/Foto_Perfil_.jpg' }} // URL de la foto del perfil
-                            style={styles.profileImage}
-                        />
+                        <View style={styles.profileImageContainer}>
+                            <Image
+                                source={{ uri: profileImageUrl }} // URL de la foto del perfil
+                                style={styles.profileImage}
+                            />
+                            <TouchableOpacity
+                                style={styles.editButton}
+                                onPress={selectImage}
+                            >
+                                <Ionicons name="pencil" size={15} color="black" />
+                            </TouchableOpacity>
+                        </View>
                         <Text style={styles.name}>{primerDato.first_name + ' ' + primerDato.first_last_name || 'Nombre no disponible'}</Text>
                         <Text style={styles.email}>{primerDato.correo || 'Correo no disponible'}</Text>
-                        <TouchableOpacity 
-                            style={styles.uploadButton} 
-                            onPress={selectImage}
-                        >
-                            <Text style={styles.uploadButtonText}>Subir Imagen</Text>
-                        </TouchableOpacity>
                     </View>
                 </View>
 
@@ -160,8 +172,8 @@ const Perfil = () => {
                                 <Text style={styles.reservaText}>Fecha: {item.fecha_reserva}</Text>
                                 <Text style={styles.reservaText}>Status: {item.status}</Text>
                                 {item.status === 'Pago en Proceso' && (
-                                    <TouchableOpacity 
-                                        style={styles.deleteButton} 
+                                    <TouchableOpacity
+                                        style={styles.deleteButton}
                                         onPress={() => eliminarReserva(item.uid_compra)}
                                     >
                                         <Text style={styles.deleteButtonText}>Cancelar</Text>
@@ -172,9 +184,16 @@ const Perfil = () => {
                     />
                 </View>
             </ScrollView>
+            <TouchableOpacity
+                    style={styles.logoutButton}
+                    onPress={cerrarSesion}
+                >
+                    <Ionicons name="log-out" size={20} color="white" />
+                </TouchableOpacity>
         </View>
     );
 };
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -201,70 +220,91 @@ const styles = StyleSheet.create({
         width: 100,
         height: 100,
         borderRadius: 50, // Hace que la imagen sea circular
-        marginBottom: 16,
+        borderWidth: 2,
+        borderColor: 'white',
+    },
+    profileImageContainer: {
+        position: 'relative',
+    },
+    editButton: {
+        position: 'absolute',
+        bottom: 0,
+        right: 0,
+        backgroundColor: '#fff',
+        borderRadius: 50,
+        padding: 8,
+        elevation: 2,
     },
     name: {
         fontSize: 24,
         fontWeight: 'bold',
-        marginBottom: 8,
-        color: 'white'
+        color: 'white',
+        marginTop: 8,
     },
     email: {
-        fontSize: 18,
+        fontSize: 16,
         color: 'white',
-        marginBottom: 16,
-    },
-    uploadButton: {
-        backgroundColor: '#3B6D7B',
-        padding: 10,
-        borderRadius: 5,
-        marginTop: 10,
-    },
-    uploadButtonText: {
-        color: 'white',
-        fontWeight: 'bold',
     },
     bioContainer: {
-        alignItems: 'center',
-        paddingHorizontal: 16, // Añade algo de padding horizontal
-        marginVertical: 20, // Espacio entre el fondo decorativo y el contenido
+        padding: 16,
     },
     bio: {
         fontSize: 16,
-        textAlign: 'center',
-        marginBottom: 16,
+        color: '#333',
     },
     reservasContainer: {
-        flex: 1, // Ocupa el espacio disponible
-        width: '100%',
-        paddingHorizontal: 16,
+        padding: 16,
     },
     reservasTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        marginBottom: 10,
-        color: '#3B6D7B',
+        marginBottom: 8,
     },
     reservaItem: {
-        padding: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+        marginBottom: 16,
+        padding: 16,
+        borderRadius: 8,
+        backgroundColor: '#f9f9f9',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
     },
     reservaText: {
         fontSize: 16,
-        flex: 1,
+        marginBottom: 4,
     },
     deleteButton: {
-        backgroundColor: '#FF6347', // Rojo tomate
-        padding: 10,
-        borderRadius: 5,
+        marginTop: 10,
+        backgroundColor: '#FF6347', // Color de fondo similar al botón de "Cancelar"
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 8,
+        alignItems: 'center',
     },
     deleteButtonText: {
-        color: 'white',
+        color: '#fff',
+        fontSize: 16,
         fontWeight: 'bold',
+    },
+    logoutButton: {
+        position: 'absolute',
+        top: 16,
+        right: 16,
+        backgroundColor: '#FF6347', // Color del botón de "Cerrar Sesión"
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    logoutButton: {
+        position: 'absolute',
+        top: 40, // Separa el botón del borde superior
+        right: 10,
+        backgroundColor: 'rgba(0,0,0,0.3)',
+        borderRadius: 50,
+        padding: 8,
+        zIndex: 1,
     },
 });
 
