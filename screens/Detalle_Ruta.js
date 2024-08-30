@@ -27,7 +27,7 @@ export default function DetalleRuta({ route }) {
                 
                 const actividadesPromises = Object.keys(datosServicios[0]).map(async (campo) => {
                     const idActividad = datosServicios[0][campo];
-                    if (idActividad) {  // Verificar que el ID de la actividad no sea nulo o undefined
+                    if (idActividad) {  
                         try {
                             const actividad = await fetch_Data('actividades_t', 'uid_actividades,nombre, descripcion, photo, hr_inicio, hr_fin', { campo: 'uid_actividades', valor: idActividad });
 
@@ -87,7 +87,6 @@ const styles = StyleSheet.create({
         width: Dimensions.get('window').width - 20,
         height: Dimensions.get('window').height / 3,
         marginLeft: 10,
-   
         borderBottomRightRadius: 50,
         borderBottomLeftRadius: 50,
         overflow: 'hidden',

@@ -9,9 +9,8 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export const uploadImage = async (fileBlob) => {
     try {
-      const nameUnique = Date.now() + '-' + 'image.jpg'; // Usa un nombre genérico si no tienes el nombre del archivo
+        const nameUnique = Date.now() + '-' + 'image.jpg';
     
-        // Subir el archivo al bucket 'actividades'
         const { data, error } = await supabase
             .storage
             .from('actividades')
@@ -72,6 +71,33 @@ export async function fetch_Data(nomTB, datos, condicion) {
     }
 }
 
+
+
+
+export async function fetch_Data_mes(nomTB, datos, condicion) {
+    try {
+        // La función filter se usa por separado para cada condición
+        const { data, error } = await supabase
+            .from(nomTB)
+            .select(datos)
+            .filter(condicion.campo1, 'in', `(${condicion.valor1},${condicion.valor2})`);
+        
+        // Manejo del error si existe
+        if (error) {
+            throw error;
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        throw new Error(`Error fetching data: ${error.message}`);
+    }
+}
+
+
+
+
+
 export async function create_User(email, password){
     const { data, error } = await supabase.auth.signUp({
         email: email,
@@ -119,19 +145,22 @@ export async function close_Sesion(){
 export async function update_Data(nomTB, campoActualizar, nuevoValor, condicion) {
     try {
         const { error } = await supabase
-            .from(nomTB) // Nombre de la tabla
-            .update({ [campoActualizar]: nuevoValor }) // Actualiza el campo especificado con el nuevo valor
-            .eq(condicion.campo, condicion.valor); // Condición para seleccionar el registro que se debe actualizar
+            .from(nomTB)
+            .update({ [campoActualizar]: nuevoValor }) 
+            .eq(condicion.campo, condicion.valor); 
         
         if (error) {
-            throw error; // Lanza el error para que pueda ser capturado por el bloque catch
-        } else {
-            
+            throw error; 
         }
     } catch (error) {
         console.error('Error al actualizar los datos:', error.message);
         alert('Error al actualizar los datos.');
     }
 }
+
+
+
+
+
 
 

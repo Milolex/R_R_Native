@@ -6,6 +6,7 @@ import Rutas from './screens/Rutas';
 import Conductor from './screens/Conductor';
 import Register from './screens/Register';
 import Detalle_Ruta from './screens/Detalle_Ruta';
+import Chat from './screens/chat';
 export default function App() {
   const Stack = createStackNavigator();
   return (
@@ -33,6 +34,11 @@ export default function App() {
             }
           />
           <Stack.Screen name="Detalle_Ruta" component={Detalle_Ruta} 
+            options={
+              {headerShown: false}
+            }
+          />
+          <Stack.Screen name="Chat" component={Chat} 
             options={
               {headerShown: false}
             }

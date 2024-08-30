@@ -3,18 +3,18 @@ import { View, Text, Image, StyleSheet, FlatList, ScrollView, Dimensions, Toucha
 import * as ImagePicker from 'expo-image-picker';
 import { fetch_Data, uploadImage, update_Data, close_Sesion } from '../SupaConsult';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons'; // Asegúrate de instalar esta dependencia
-import { useNavigation } from '@react-navigation/native'; // Importa useNavigation para la navegación
+import { Ionicons } from '@expo/vector-icons'; 
+import { useNavigation } from '@react-navigation/native'; 
 
 const { height } = Dimensions.get('window');
 
 const Conductor = () => {
-    const [datos, setDatos] = useState([]); // Datos del perfil
-    const [reservas, setReservas] = useState([]); // Reservas del usuario
+    const [datos, setDatos] = useState([]);
+    const [reservas, setReservas] = useState([]);
     const [selectedImage, setSelectedImage] = useState(null);
     const [fullPath, setFullPath] = useState(null);
 
-    const navigation = useNavigation(); // Usa useNavigation para la navegación
+    const navigation = useNavigation();
 
     const cargaDatos = async () => {
         try {
@@ -44,9 +44,9 @@ const Conductor = () => {
 
         const intervalId = setInterval(() => {
             cargaDatos();
-        }, 5 * 60 * 1000); // Actualiza cada 5 minutos
+        }, 5 * 60 * 1000);
 
-        // Limpiar intervalo al desmontar el componente
+        
         return () => clearInterval(intervalId);
     }, []);
 
@@ -76,15 +76,13 @@ const Conductor = () => {
                 try {
                     const uploadResponse = await uploadImage(file);
                     const newFullPath = uploadResponse?.path;
-                    setFullPath(newFullPath); // Actualiza el estado con la URL de la imagen subida
+                    setFullPath(newFullPath);
 
                     alert('Imagen subida con éxito.');
 
-                    // Actualiza la imagen en el perfil
                     const uid = await AsyncStorage.getItem('userUid');
                     await update_Data('inf_usuarios_t', 'photo_perfil', newFullPath, { campo: 'uid', valor: uid });
 
-                    // Vuelve a cargar los datos del perfil para reflejar el cambio
                     const updatedDatos = await fetch_Data('inf_usuarios_t', 'first_name, first_last_name, correo, photo_perfil', { campo: 'uid', valor: uid });
                     setDatos(updatedDatos);
                 } catch (error) {
@@ -99,14 +97,32 @@ const Conductor = () => {
 
     const cerrarSesion = async () => {
         try {
-            await close_Sesion(); // Llama a la función de cierre de sesión
-            await AsyncStorage.removeItem('userUid'); // Elimina el UID del almacenamiento
-            navigation.navigate('Login'); // Navega a la pantalla de inicio de sesión
+            await close_Sesion();
+            await AsyncStorage.removeItem('userUid');
+            navigation.navigate('Login'); 
         } catch (error) {
             console.error('Error al cerrar sesión:', error);
             alert('Error al cerrar sesión');
         }
     };
+    const irAChat = async (uid_compra) => {
+        const reserva = reservas.find(reserva => reserva.uid_compra === uid_compra);
+        if (reserva) {
+            try {
+                await AsyncStorage.setItem('uid_compra', reserva.uid_compra);
+                // Esperar a que AsyncStorage se complete antes de mostrar el mensaje
+                await AsyncStorage.getItem('uid_compra');
+
+                navigation.navigate('Chat');
+            } catch (error) {
+                console.error('Error al guardar uid_compra en AsyncStorage:', error);
+                alert('Error al guardar uid_compra');
+            }
+        } else {
+            alert('Reserva no encontrada');
+        }
+    };
+    
 
     const primerDato = datos.length > 0 ? datos[0] : {};
     const profileImageUrl = primerDato.photo_perfil || 'https://upload.wikimedia.org/wikipedia/commons/b/bf/Foto_Perfil_.jpg';
@@ -125,7 +141,7 @@ const Conductor = () => {
                     <View style={styles.profileContainer}>
                         <View style={styles.profileImageContainer}>
                             <Image
-                                source={{ uri: profileImageUrl }} // URL de la foto del perfil
+                                source={{ uri: profileImageUrl }}
                                 style={styles.profileImage}
                             />
                             <TouchableOpacity
@@ -155,8 +171,16 @@ const Conductor = () => {
                                 <Text style={styles.reservaText}>Actividad: {item.nombre_actividad}</Text>
                                 <Text style={styles.reservaText}>Fecha: {item.fecha_reserva}</Text>
                                 <Text style={styles.reservaText}>Status: {item.status}</Text>
+                                <TouchableOpacity
+                                    style={styles.chatButton}
+                                    onPress={() => irAChat(item.uid_compra)}
+                                >
+                                    <Text style={styles.chatButtonText}>Chat</Text>
+                                </TouchableOpacity>
+
                             </View>
                         )}
+                        
                     />
                 </View>
             </ScrollView>
@@ -174,7 +198,7 @@ const styles = StyleSheet.create({
     },
     logoutButton: {
         position: 'absolute',
-        top: 40, // Separa el botón del borde superior
+        top: 40, 
         right: 10,
         backgroundColor: 'rgba(0,0,0,0.3)',
         borderRadius: 50,
@@ -182,10 +206,10 @@ const styles = StyleSheet.create({
         zIndex: 1,
     },
     decorativeBackground: {
-        height: height * 0.3, // Ajusta la altura del fondo decorativo a un porcentaje del alto de la pantalla
+        height: height * 0.3, 
         backgroundColor: '#3B6D7B',
-        borderBottomLeftRadius: 100, // Ajusta el radio del borde para el medio redondeo
-        borderBottomRightRadius: 100, // Ajusta el radio del borde para el medio redondeo
+        borderBottomLeftRadius: 100,
+        borderBottomRightRadius: 100,
         overflow: 'hidden',
         justifyContent: 'center',
         alignItems: 'center',
@@ -245,6 +269,22 @@ const styles = StyleSheet.create({
     reservaText: {
         fontSize: 16,
         color: '#333',
+    },
+    chatButton: {
+        marginTop: 10,
+        backgroundColor: 'green',
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    chatButtonText: {
+        color: 'white',
+        fontSize: 16,
+    },
+    inicio: {
+        height: 100,
+        backgroundColor: 'white',
     },
 });
 

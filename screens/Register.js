@@ -103,7 +103,12 @@ export default function Register() {
                                     tipoUser: 'Usuario',
                                 }
                                 await insert_Data('inf_usuarios_t', dato)
-                                //navigation.navigate('Rutas');
+                                const rol = await AsyncStorage.getItem('rol');
+                                if (rol == 'Conductor'){
+                                    navigation.navigate('Conductor');
+                                }else{
+                                    navigation.navigate('Rutas');
+                                }
                             }catch(e){
                                 alert(e)
                             }

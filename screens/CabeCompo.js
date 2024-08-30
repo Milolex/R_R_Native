@@ -12,9 +12,9 @@ const CabeCompo = () => {
 
     const cerrarSesion = async () => {
         try {
-            await close_Sesion(); // Llama a la función de cierre de sesión
-            await AsyncStorage.removeItem('userUid'); // Elimina el UID del almacenamiento
-            navigation.navigate('Login'); // Navega a la pantalla de inicio de sesión
+            await close_Sesion(); 
+            await AsyncStorage.removeItem('userUid');
+            navigation.navigate('Login');
         } catch (error) {
             console.error('Error al cerrar sesión:', error);
             alert('Error al cerrar sesión');
@@ -66,9 +66,9 @@ const styles = StyleSheet.create({
     },
     logoutButton: {
         position: 'absolute',
-        top: '50%', // Alinea el botón verticalmente en el centro del header
-        right: 20, // Ajusta la distancia desde el borde derecho
-        transform: [{ translateY: -10 }], // Ajusta la posición vertical para centrarlo
+        top: '50%', 
+        right: 20, 
+        transform: [{ translateY: -10 }], 
         backgroundColor: 'rgba(0,0,0,0.3)',
         borderRadius: 50,
         padding: 8,

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ImageBackground, FlatList, StyleSheet, TouchableOpacity, Alert, Button } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker'; // Importa el DateTimePicker
+import DateTimePicker from '@react-native-community/datetimepicker'; 
 import { insert_Data, fetch_Data } from '../SupaConsult';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RNPickerSelect from 'react-native-picker-select';
@@ -11,8 +11,8 @@ export default function ListaActividades({ servicios }) {
     const [selectedActivity, setSelectedActivity] = useState(null);
     const [conductores, setConductores] = useState([]);
     const [selectedConductor, setSelectedConductor] = useState(null);
-    const [fechaAgendacion, setFechaAgendacion] = useState(new Date()); // Estado para la fecha de agendación
-    const [showDatePicker, setShowDatePicker] = useState(false); // Estado para controlar la visualización del DatePicker
+    const [fechaAgendacion, setFechaAgendacion] = useState(new Date()); 
+    const [showDatePicker, setShowDatePicker] = useState(false); 
 
     useEffect(() => {
         const fetchConductores = async () => {
@@ -38,8 +38,8 @@ export default function ListaActividades({ servicios }) {
     useEffect(() => {
         const initialSelection = Array(servicios.length).fill(false);
         if (servicios.length > 0) {
-            initialSelection[0] = true; // La primera actividad siempre está seleccionada
-            initialSelection[servicios.length - 1] = true; // La última actividad siempre está seleccionada
+            initialSelection[0] = true; 
+            initialSelection[servicios.length - 1] = true;
         }
         setSelectedItems(initialSelection);
     }, [servicios]);
@@ -85,7 +85,7 @@ export default function ListaActividades({ servicios }) {
                 uid_conductor: selectedConductor,
                 uid_cliente: userUid,
                 status: 'Pago en Proceso',
-                fecha_reserva: fechaAgendacion.toISOString().split('T')[0], // Usa la fecha seleccionada
+                fecha_reserva: fechaAgendacion.toISOString().split('T')[0],
                 nombre_actividad: selectedActivity || '',
                 hora: timeString,
                 act_1: null,
@@ -118,8 +118,8 @@ export default function ListaActividades({ servicios }) {
     const rehacerListado = () => {
         const updatedSelection = Array(servicios.length).fill(false);
         if (servicios.length > 0) {
-            updatedSelection[0] = true; // La primera actividad siempre está seleccionada
-            updatedSelection[servicios.length - 1] = true; // La última actividad siempre está seleccionada
+            updatedSelection[0] = true;
+            updatedSelection[servicios.length - 1] = true; 
         }
         setSelectedItems(updatedSelection);
     };
@@ -182,7 +182,7 @@ export default function ListaActividades({ servicios }) {
                             setShowDatePicker(false);
                             if (selectedDate) {
                                 const now = new Date();
-                                now.setHours(0, 0, 0, 0); // Resetea las horas, minutos, segundos y milisegundos para la comparación
+                                now.setHours(0, 0, 0, 0); 
 
                                 if (selectedDate < now) {
                                     Alert.alert("Fecha no válida", "La fecha seleccionada no puede ser menor a la fecha actual.");
@@ -299,16 +299,16 @@ const styles = StyleSheet.create({
         transform: [{ translateY: -12 }]
     },
     datePickerContainer: {
-        flexDirection: 'row', // Alinea los elementos en una fila
-        alignItems: 'center', // Alinea los elementos verticalmente al centro
+        flexDirection: 'row', 
+        alignItems: 'center',
         padding: 10,
     },
     selectedDate: {
-        marginLeft: 10, // Espacio entre el botón y la fecha seleccionada
+        marginLeft: 10, 
         fontSize: 16,
         color: 'black',
     },
     selectContainer: {
-        alignItems: 'flex-start', // Alinea el botón a la izquierda
+        alignItems: 'flex-start',
     },
 });

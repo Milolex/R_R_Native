@@ -3,15 +3,15 @@ import { View, Text, Image, StyleSheet, FlatList, ScrollView, Dimensions, Toucha
 import * as ImagePicker from 'expo-image-picker';
 import { fetch_Data, delete_Data, uploadImage, update_Data, close_Sesion } from '../SupaConsult';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons'; // Asegúrate de instalar esta dependencia
-import { useNavigation } from '@react-navigation/native'; // Importa useNavigation para la navegación
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native'; 
 
 const { height } = Dimensions.get('window');
 
 const Perfil = () => {
     const navigation = useNavigation();
-    const [datos, setDatos] = useState([]); // Datos del perfil
-    const [reservas, setReservas] = useState([]); // Reservas del usuario
+    const [datos, setDatos] = useState([]);
+    const [reservas, setReservas] = useState([]);
     const [selectedImage, setSelectedImage] = useState(null);
     const [fullPath, setFullPath] = useState(null);
 
@@ -99,15 +99,15 @@ const Perfil = () => {
                 try {
                     const uploadResponse = await uploadImage(file);
                     const newFullPath = uploadResponse?.path;
-                    setFullPath(newFullPath); // Actualiza el estado con la URL de la imagen subida
+                    setFullPath(newFullPath);
 
                     alert('Imagen subida con éxito.');
 
-                    // Actualiza la imagen en el perfil
+                    
                     const uid = await AsyncStorage.getItem('userUid');
                     await update_Data('inf_usuarios_t', 'photo_perfil', newFullPath, { campo: 'uid', valor: uid });
 
-                    // Vuelve a cargar los datos del perfil para reflejar el cambio
+                    
                     const updatedDatos = await fetch_Data('inf_usuarios_t', 'first_name, first_last_name, correo, photo_perfil', { campo: 'uid', valor: uid });
                     setDatos(updatedDatos);
                 } catch (error) {
@@ -123,15 +123,32 @@ const Perfil = () => {
     const cerrarSesion = async () => {
         try {
             
-            await close_Sesion(); // Llama a la función de cierre de sesión
-            await AsyncStorage.removeItem('userUid'); // Elimina el UID del almacenamiento
-            navigation.navigate('Login'); // Navega a la pantalla de inicio de sesión
+            await close_Sesion(); 
+            await AsyncStorage.removeItem('userUid');
+            navigation.navigate('Login');
         } catch (error) {
             console.error('Error al cerrar sesión:', error);
             alert('Error al cerrar sesión');
         }
     };
-
+    const irAChat = async (uid_compra) => {
+        const reserva = reservas.find(reserva => reserva.uid_compra === uid_compra);
+        if (reserva) {
+            try {
+                await AsyncStorage.setItem('uid_compra', reserva.uid_compra);
+                // Esperar a que AsyncStorage se complete antes de mostrar el mensaje
+                const storedUidCompra = await AsyncStorage.getItem('uid_compra');
+                navigation.navigate('Chat');
+            } catch (error) {
+                console.error('Error al guardar uid_compra en AsyncStorage:', error);
+                alert('Error al guardar uid_compra');
+            }
+        } else {
+            alert('Reserva no encontrada');
+        }
+    };
+    
+    
     const primerDato = datos.length > 0 ? datos[0] : {};
     const profileImageUrl = primerDato.photo_perfil || 'https://upload.wikimedia.org/wikipedia/commons/b/bf/Foto_Perfil_.jpg';
 
@@ -142,7 +159,7 @@ const Perfil = () => {
                     <View style={styles.profileContainer}>
                         <View style={styles.profileImageContainer}>
                             <Image
-                                source={{ uri: profileImageUrl }} // URL de la foto del perfil
+                                source={{ uri: profileImageUrl }} 
                                 style={styles.profileImage}
                             />
                             <TouchableOpacity
@@ -178,7 +195,15 @@ const Perfil = () => {
                                     >
                                         <Text style={styles.deleteButtonText}>Cancelar</Text>
                                     </TouchableOpacity>
+                                    
                                 )}
+                                <TouchableOpacity
+                                    style={styles.chatButton}
+                                    onPress={() => irAChat(item.uid_compra)}
+                                >
+                                    <Text style={styles.chatButtonText}>Chat</Text>
+                                </TouchableOpacity>
+
                             </View>
                         )}
                     />
@@ -203,23 +228,23 @@ const styles = StyleSheet.create({
         flexGrow: 1,
     },
     decorativeBackground: {
-        height: height * 0.3, // Ajusta la altura del fondo decorativo a un porcentaje del alto de la pantalla
+        height: height * 0.3,
         backgroundColor: '#3B6D7B',
-        borderBottomLeftRadius: 100, // Ajusta el radio del borde para el medio círculo
-        borderBottomRightRadius: 100, // Ajusta el radio del borde para el medio círculo
-        alignItems: 'center', // Alinea el contenido del fondo
-        justifyContent: 'center', // Centra el contenido verticalmente
-        paddingTop: 80, // Ajusta para evitar el notch
-        paddingBottom: 20, // Añade padding para separación del contenido
+        borderBottomLeftRadius: 100, 
+        borderBottomRightRadius: 100, 
+        alignItems: 'center',
+        justifyContent: 'center', 
+        paddingTop: 80, 
+        paddingBottom: 20, 
     },
     profileContainer: {
         alignItems: 'center',
-        paddingHorizontal: 16, // Añade algo de padding horizontal
+        paddingHorizontal: 16, 
     },
     profileImage: {
         width: 100,
         height: 100,
-        borderRadius: 50, // Hace que la imagen sea circular
+        borderRadius: 50,
         borderWidth: 2,
         borderColor: 'white',
     },
@@ -276,7 +301,7 @@ const styles = StyleSheet.create({
     },
     deleteButton: {
         marginTop: 10,
-        backgroundColor: '#FF6347', // Color de fondo similar al botón de "Cancelar"
+        backgroundColor: '#FF6347',
         paddingVertical: 8,
         paddingHorizontal: 16,
         borderRadius: 8,
@@ -291,7 +316,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 16,
         right: 16,
-        backgroundColor: '#FF6347', // Color del botón de "Cerrar Sesión"
+        backgroundColor: '#FF6347', 
         paddingVertical: 12,
         paddingHorizontal: 24,
         borderRadius: 8,
@@ -299,12 +324,24 @@ const styles = StyleSheet.create({
     },
     logoutButton: {
         position: 'absolute',
-        top: 40, // Separa el botón del borde superior
+        top: 40, 
         right: 10,
         backgroundColor: 'rgba(0,0,0,0.3)',
         borderRadius: 50,
         padding: 8,
         zIndex: 1,
+    },
+    chatButton: {
+        marginTop: 10,
+        backgroundColor: 'green',
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    chatButtonText: {
+        color: 'white',
+        fontSize: 16,
     },
 });
 
