@@ -76,21 +76,17 @@ export async function fetch_Data(nomTB, datos, condicion) {
 
 export async function fetch_Data_mes(nomTB, datos, condicion) {
     try {
-        // La función filter se usa por separado para cada condición
         const { data, error } = await supabase
             .from(nomTB)
             .select(datos)
-            .filter(condicion.campo1, 'in', `(${condicion.valor1},${condicion.valor2})`);
-        
-        // Manejo del error si existe
-        if (error) {
-            throw error;
-        }
+            .eq(condicion.campo1, condicion.valor1)
+            .eq(condicion.campo2, condicion.valor2)
+            .eq(condicion.campo3, condicion.valor3)
+        return data
 
-        return data;
+
     } catch (error) {
-        console.error('Error fetching data:', error);
-        throw new Error(`Error fetching data: ${error.message}`);
+        throw error + 'siiii'
     }
 }
 
@@ -157,6 +153,59 @@ export async function update_Data(nomTB, campoActualizar, nuevoValor, condicion)
         alert('Error al actualizar los datos.');
     }
 }
+
+
+export async function reset_password(email) {
+    try {
+        let { data, error } = await supabase.auth.resetPasswordForEmail(email)
+    } catch (error) {
+        
+        alert('Error al actualizar los datos.');
+    }
+}
+
+
+export async function val_otp(email, token) {
+    try {
+        const { data, error } = await supabase.auth.verifyOtp({ email, token, type: 'email' });
+        if (error) {
+            console.error('Error al verificar OTP:', error.message);
+            return false;
+        }
+        // Convertir ambos correos electrónicos a minúsculas para la comparación
+        const providedEmail = email.toLowerCase();
+        const returnedEmail = data.user.email.toLowerCase();
+
+        if (returnedEmail === providedEmail) {
+            return true;
+        } else {
+            console.log('El correo electrónico no coincide.');
+            return false;
+        }
+    } catch (error) {
+        console.error('Error al verificar OTP:', error.message);
+        return false;
+    }
+}
+
+
+export async function change_password(password) {
+    try {
+        
+        await supabase.auth.updateUser({ password: password })
+        console.log(password);
+    } catch (error) {
+        
+        alert('Error al actualizar los datos.');
+    }
+}
+
+
+
+
+
+
+
 
 
 

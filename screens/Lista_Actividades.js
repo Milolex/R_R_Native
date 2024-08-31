@@ -6,7 +6,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import RNPickerSelect from 'react-native-picker-select';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-export default function ListaActividades({ servicios }) {
+export default function ListaActividades({ servicios, service }) {
+    
+
     const [selectedItems, setSelectedItems] = useState([]);
     const [selectedActivity, setSelectedActivity] = useState(null);
     const [conductores, setConductores] = useState([]);
@@ -86,7 +88,8 @@ export default function ListaActividades({ servicios }) {
                 uid_cliente: userUid,
                 status: 'Pago en Proceso',
                 fecha_reserva: fechaAgendacion.toISOString().split('T')[0],
-                nombre_actividad: selectedActivity || '',
+                nombre_actividad: service.nombre,
+                uid_ruta: service.uid_ruta,
                 hora: timeString,
                 act_1: null,
                 act_2: null,

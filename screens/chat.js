@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { View, Text, FlatList, StyleSheet, SafeAreaView, Alert, Dimensions, TextInput, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { fetch_Data, insert_Data } from '../SupaConsult';
+import { fetch_Data, insert_Data, fetch_Data_mes } from '../SupaConsult';
 import CabeCompo from './CabeCompo';
 
 const { height } = Dimensions.get('window');
@@ -9,79 +9,115 @@ const { height } = Dimensions.get('window');
 const Chat = () => {
     const [messages, setMessages] = useState([]);
     const [message, setMessage] = useState('');
-    const [uidClienteFetched, setUidClienteFetched] = useState(false);
     const [uidCliente, setUidCliente] = useState(null);
+    const [uidConductor, setUidConductor] = useState(null);
+  
+    const previousMessages = useRef([]);
 
     const cargarDatos = useCallback(async () => {
+        if (!uidCliente) return; // Asegura que uidCliente está cargado
+    
         try {
             const uid = await AsyncStorage.getItem('userUid');
             const uidCompra = await AsyncStorage.getItem('uid_compra');
+    
             if (!uid || !uidCompra) {
                 Alert.alert('Error', 'UID de usuario o UID de compra no encontrado.');
                 return;
             }
-
+    
             const rol = await AsyncStorage.getItem('rol');
             let fetchedMessages = [];
+    
             if (rol === 'Conductor') {
-                fetchedMessages = await fetch_Data('messages', 'content,created_at,id_cliente,id_conductor', { campo: 'id_conductor', valor: uid });
+                fetchedMessages = await fetch_Data_mes('messages', 'content,created_at,id_cliente,id_conductor, send_by', { 
+                    campo1: 'id_conductor', valor1: uid, 
+                    campo2: 'id_cliente', valor2: uidCliente, 
+                    campo3: 'id_compra', valor3: uidCompra 
+                });
             } else {
-                fetchedMessages = await fetch_Data('messages', 'content,created_at,id_cliente,id_conductor', { campo: 'id_cliente', valor: uid });
+                fetchedMessages = await fetch_Data_mes('messages', 'content,created_at,id_cliente,id_conductor, send_by', { 
+                    campo1: 'id_conductor', valor1: uidConductor, 
+                    campo2: 'id_cliente', valor2: uid, 
+                    campo3: 'id_compra', valor3: uidCompra 
+                });
             }
-
-            if (!uidClienteFetched) {
-                const additionalData = await fetch_Data('carrito_ven_t', 'uid_cliente', { campo: 'uid_compra', valor: uidCompra });
-                const fetchedUidCliente = additionalData[0]?.uid_cliente;
-                setUidCliente(fetchedUidCliente);
-                setUidClienteFetched(true);
-            }
-
-            // Filtra los mensajes según el resultado de la búsqueda adicional
-            if (uidCliente) {
-                fetchedMessages = fetchedMessages.filter(message => message.id_cliente === uid);
-            }
-
+    
+            // Ordenar los mensajes por fecha de creación
             if (Array.isArray(fetchedMessages)) {
+                fetchedMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+            }
+    
+            // Compara los mensajes cargados con los mensajes actuales para evitar actualizaciones innecesarias
+            if (Array.isArray(fetchedMessages) && JSON.stringify(fetchedMessages) !== JSON.stringify(previousMessages.current)) {
                 setMessages(fetchedMessages);
-            } else {
-                Alert.alert('Error', 'No se pudieron cargar los mensajes.');
+                previousMessages.current = fetchedMessages;
             }
         } catch (error) {
             Alert.alert('Error', 'Hubo un problema al cargar los datos.');
         }
-    }, [uidCliente, uidClienteFetched]);
+    }, [uidCliente, uidConductor]); // Añadida dependencia de uidConductor
+    
+    const inicializarDatos = useCallback(async () => {
+        try {
+            const uidCompra = await AsyncStorage.getItem('uid_compra');
+
+            if (!uidCompra) {
+                Alert.alert('Error', 'UID de compra no encontrado.');
+                return;
+            }
+
+            const additionalData = await fetch_Data('carrito_ven_t', 'uid_cliente,uid_conductor', { campo: 'uid_compra', valor: uidCompra });
+            const fetchedUidCliente = additionalData[0]?.uid_cliente;
+            const fetchedUidConductor= additionalData[0]?.uid_conductor;
+            setUidCliente(fetchedUidCliente); // Setea uidCliente una vez
+            setUidConductor(fetchedUidConductor);
+        } catch (error) {
+            Alert.alert('Error', 'Hubo un problema al inicializar los datos.');
+        }
+    }, []);
 
     useEffect(() => {
-        cargarDatos();
-        const intervalId = setInterval(cargarDatos, 2000);
+        inicializarDatos(); // Inicializa uidCliente al cargar el componente
+
+        const intervalId = setInterval(cargarDatos, 2000); // Luego carga datos cada 2 segundos
         return () => clearInterval(intervalId);
-    }, [cargarDatos]);
+    }, [inicializarDatos, cargarDatos]);
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
     };
+    
 
     const handleSendMessage = async () => {
         try {
             const uid = await AsyncStorage.getItem('userUid');
             const uidCompra = await AsyncStorage.getItem('uid_compra');
+
             if (!uid || !uidCompra) {
                 Alert.alert('Error', 'UID de usuario o UID de compra no encontrado.');
                 return;
             }
-
+            const rol = await AsyncStorage.getItem('rol');
+            var send = '';    
+            if (rol === 'Conductor') {
+                send = 'Conductor';
+            } else {
+                send = 'Usuario';
+            }
             const newMessage = {
                 content: message,
                 created_at: new Date().toISOString(),
-                id_cliente: uid,
-                id_conductor: uid, // Cambia esto si necesitas un id diferente para el conductor
-
+                id_cliente: uidCliente,
+                id_conductor: uidConductor,
+                id_compra: uidCompra,
+                send_by: send
             };
 
             await insert_Data('messages', newMessage);
             setMessage('');
-            cargarDatos(); // Asegúrate de que esta función esté definida
+            cargarDatos(); // Recarga los datos para incluir el nuevo mensaje
         } catch (error) {
             Alert.alert('Error', 'Hubo un problema al enviar el mensaje.');
         }
@@ -95,10 +131,15 @@ const Chat = () => {
             <View style={styles.chatContainer}>
                 <FlatList
                     data={messages}
-                    keyExtractor={(item) => item.id_conductor + item.created_at} // Usa una combinación única de campos como clave
+                    keyExtractor={(item) => item.id_conductor + item.created_at}
                     renderItem={({ item }) => (
                         <View style={styles.messageContainer}>
-                            <Text style={styles.messageText}>{item.content}</Text>
+                            <Text style={styles.senderText}>
+                                {item.send_by}
+                            </Text>
+                            <Text style={styles.messageText}>
+                                {item.content}
+                            </Text>
                             <Text style={styles.dateText}>{formatDate(item.created_at)}</Text>
                         </View>
                     )}
@@ -119,17 +160,17 @@ const Chat = () => {
         </SafeAreaView>
     );
 };
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#fff',
     },
     header: {
-        height: 150,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
+        height: 120,
+        backgroundColor: 'white',
     },
+    
     chatContainer: {
         flex: 1,
         padding: 10,
@@ -145,9 +186,16 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 2,
     },
+    senderText: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#3B6D7B',
+
+    },
     messageText: {
         fontSize: 16,
         color: '#000',
+        marginTop: 5,
     },
     dateText: {
         fontSize: 12,

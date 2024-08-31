@@ -112,7 +112,7 @@ export default function Login() {
                 <TouchableOpacity
                     style={styles.buttonOlv}
                     onPress={() => {
-                        // Manejo de la acción de olvido de contraseña aquí
+                        navigation.navigate('RecoveryScreen');
                     }}
                 >
                     <Text style={styles.buttonTextOlvt}>Olvidaste tu contraseña?</Text>

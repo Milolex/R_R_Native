@@ -7,6 +7,7 @@ import Conductor from './screens/Conductor';
 import Register from './screens/Register';
 import Detalle_Ruta from './screens/Detalle_Ruta';
 import Chat from './screens/chat';
+import RecoveryScreen from './screens/RecoveryScreen';
 export default function App() {
   const Stack = createStackNavigator();
   return (
@@ -39,6 +40,11 @@ export default function App() {
             }
           />
           <Stack.Screen name="Chat" component={Chat} 
+            options={
+              {headerShown: false}
+            }
+          />
+          <Stack.Screen name="RecoveryScreen" component={RecoveryScreen} 
             options={
               {headerShown: false}
             }

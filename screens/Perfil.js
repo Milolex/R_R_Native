@@ -4,9 +4,29 @@ import * as ImagePicker from 'expo-image-picker';
 import { fetch_Data, delete_Data, uploadImage, update_Data, close_Sesion } from '../SupaConsult';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native'; 
+import { useNavigation } from '@react-navigation/native';
 
 const { height } = Dimensions.get('window');
+
+const StarRating = ({ rating, onRatingChange }) => {
+    return (
+        <View style={styles.starContainer}>
+            {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity
+                    key={star}
+                    onPress={() => onRatingChange(star)}
+                >
+                    <Ionicons
+                        name={star <= rating ? 'star' : 'star-outline'}
+                        size={24}
+                        color="gold"
+                    />
+                </TouchableOpacity>
+            ))}
+        </View>
+    );
+};
+
 
 const Perfil = () => {
     const navigation = useNavigation();
@@ -103,11 +123,9 @@ const Perfil = () => {
 
                     alert('Imagen subida con éxito.');
 
-                    
                     const uid = await AsyncStorage.getItem('userUid');
                     await update_Data('inf_usuarios_t', 'photo_perfil', newFullPath, { campo: 'uid', valor: uid });
 
-                    
                     const updatedDatos = await fetch_Data('inf_usuarios_t', 'first_name, first_last_name, correo, photo_perfil', { campo: 'uid', valor: uid });
                     setDatos(updatedDatos);
                 } catch (error) {
@@ -122,7 +140,6 @@ const Perfil = () => {
 
     const cerrarSesion = async () => {
         try {
-            
             await close_Sesion(); 
             await AsyncStorage.removeItem('userUid');
             navigation.navigate('Login');
@@ -131,13 +148,15 @@ const Perfil = () => {
             alert('Error al cerrar sesión');
         }
     };
+
     const irAChat = async (uid_compra) => {
         const reserva = reservas.find(reserva => reserva.uid_compra === uid_compra);
         if (reserva) {
             try {
+                // Guarda el uid_compra en AsyncStorage
                 await AsyncStorage.setItem('uid_compra', reserva.uid_compra);
-                // Esperar a que AsyncStorage se complete antes de mostrar el mensaje
-                const storedUidCompra = await AsyncStorage.getItem('uid_compra');
+
+                // Navega a la pantalla de chat después de guardar uid_compra
                 navigation.navigate('Chat');
             } catch (error) {
                 console.error('Error al guardar uid_compra en AsyncStorage:', error);
@@ -147,8 +166,42 @@ const Perfil = () => {
             alert('Reserva no encontrada');
         }
     };
-    
-    
+    const handleRatingChange = async (uid_compra, newRating) => {
+        console.log(`UID Reserva: ${uid_compra}, Nueva Calificación: ${newRating}`);
+        // Actualiza la calificación en la base de datos
+        try {
+            await update_Data('carrito_ven_t', 'calificacion', newRating, { campo: 'uid_compra', valor: uid_compra });
+
+            const ruta_calificar = await fetch_Data('carrito_ven_t', 'uid_ruta', { campo: 'uid_compra', valor: uid_compra });
+
+            // Asegúrate de que ruta_calificar tenga al menos un elemento y es un array
+            if (ruta_calificar.length > 0) {
+                const uidRuta = ruta_calificar[0].uid_ruta;
+               
+                const calificacion_ruta = await fetch_Data('ruta_t', 'calificacion', { campo: 'uid_ruta', valor: uidRuta });
+                
+                const promedio_calificacion = (calificacion_ruta[0].calificacion + newRating) / 2;
+                
+                await update_Data('ruta_t', 'calificacion', Math.round(promedio_calificacion), { campo: 'uid_ruta', valor: uidRuta });
+
+            } 
+
+
+
+            
+            
+         
+            // Actualiza el estado local para reflejar los cambios
+            const updatedReservas = reservas.map(reserva =>
+                reserva.uid_compra === uid_compra ? { ...reserva, rating: newRating } : reserva
+            );
+            setReservas(updatedReservas);
+        } catch (error) {
+            console.error('Error al actualizar la calificación:', error);
+            alert('Error al actualizar la calificación');
+        }
+    };
+
     const primerDato = datos.length > 0 ? datos[0] : {};
     const profileImageUrl = primerDato.photo_perfil || 'https://upload.wikimedia.org/wikipedia/commons/b/bf/Foto_Perfil_.jpg';
 
@@ -188,6 +241,12 @@ const Perfil = () => {
                                 <Text style={styles.reservaText}>Actividad: {item.nombre_actividad}</Text>
                                 <Text style={styles.reservaText}>Fecha: {item.fecha_reserva}</Text>
                                 <Text style={styles.reservaText}>Status: {item.status}</Text>
+                                {item.status === 'Finalizado' && (
+                                    <StarRating
+                                        rating={item.rating || 0}
+                                        onRatingChange={(newRating) => handleRatingChange(item.uid_compra, newRating)}
+                                    />
+                                )}
                                 {item.status === 'Pago en Proceso' && (
                                     <TouchableOpacity
                                         style={styles.deleteButton}
@@ -195,29 +254,30 @@ const Perfil = () => {
                                     >
                                         <Text style={styles.deleteButtonText}>Cancelar</Text>
                                     </TouchableOpacity>
-                                    
                                 )}
-                                <TouchableOpacity
-                                    style={styles.chatButton}
-                                    onPress={() => irAChat(item.uid_compra)}
-                                >
-                                    <Text style={styles.chatButtonText}>Chat</Text>
-                                </TouchableOpacity>
-
+                                {item.status !== 'Finalizado' && (
+                                    <TouchableOpacity
+                                        style={styles.chatButton}
+                                        onPress={() => irAChat(item.uid_compra)}
+                                    >
+                                        <Text style={styles.chatButtonText}>Chat</Text>
+                                    </TouchableOpacity>
+                                )}
                             </View>
                         )}
                     />
                 </View>
             </ScrollView>
             <TouchableOpacity
-                    style={styles.logoutButton}
-                    onPress={cerrarSesion}
-                >
-                    <Ionicons name="log-out" size={20} color="white" />
-                </TouchableOpacity>
+                style={styles.logoutButton}
+                onPress={cerrarSesion}
+            >
+                <Ionicons name="log-out" size={20} color="white" />
+            </TouchableOpacity>
         </View>
     );
 };
+
 
 const styles = StyleSheet.create({
     container: {
@@ -342,6 +402,10 @@ const styles = StyleSheet.create({
     chatButtonText: {
         color: 'white',
         fontSize: 16,
+    },
+    starContainer: {
+        flexDirection: 'row',
+        marginBottom: 10,
     },
 });
 

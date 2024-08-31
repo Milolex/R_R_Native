@@ -374,10 +374,10 @@ const styles = StyleSheet.create({
         marginLeft: 20,
     },
     text: {
-        fontSize: 13,
+        fontSize: 10,
         color: 'black',
         marginLeft: 20,
-        marginTop: 8,
+        marginTop: 5,
     },
     image: {
         width: 80,
