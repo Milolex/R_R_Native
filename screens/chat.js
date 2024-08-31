@@ -234,3 +234,6 @@ const styles = StyleSheet.create({
 });
 
 export default Chat;
+
+
+//Create By: Camilo Andres Martínez Gualteros 2024

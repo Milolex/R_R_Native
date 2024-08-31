@@ -77,3 +77,7 @@ const styles = StyleSheet.create({
 });
 
 export default CabeCompo;
+
+
+
+//Create By: Camilo Andres Martínez Gualteros 2024

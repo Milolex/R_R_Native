@@ -146,3 +146,11 @@ const styles = StyleSheet.create({
 });
 
 export default RecoveryScreen;
+
+
+
+
+
+
+
+//Create By: Camilo Andres Martínez Gualteros 2024

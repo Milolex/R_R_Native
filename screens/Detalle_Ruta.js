@@ -100,3 +100,8 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
 });
+
+
+
+
+//Create By: Camilo Andres Martínez Gualteros 2024

@@ -62,3 +62,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
 });
+
+
+
+
+
+
+
+
+//Create By: Camilo Andres Martínez Gualteros 2024

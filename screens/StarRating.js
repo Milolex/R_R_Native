@@ -21,3 +21,10 @@ const StarRating = ({ rating }) => {
 };
 
 export default StarRating;
+
+
+
+
+
+
+//Create By: Camilo Andres Martínez Gualteros 2024

@@ -315,3 +315,9 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
     },
 });
+
+
+
+
+
+//Create By: Camilo Andres Martínez Gualteros 2024
