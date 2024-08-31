@@ -1,9 +1,10 @@
-import { StyleSheet, Text, View, Dimensions, TextInput, TouchableOpacity, PixelRatio } from 'react-native';
+import { StyleSheet, Text, View, Dimensions, TextInput, TouchableOpacity, PixelRatio, Alert } from 'react-native';
 import LottieView from 'lottie-react-native';
-import React, { useState } from 'react';
-import { login_Usser, fetch_Data } from '../SupaConsult';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useState, useEffect } from 'react';
+import { login_Usser } from '../SupaConsult'; // Asegúrate de que el nombre de la función esté correcto
 import { useNavigation } from '@react-navigation/native';
+import * as Location from 'expo-location';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Login() {
     const windowHeight = Dimensions.get('window').height;
@@ -14,52 +15,51 @@ export default function Login() {
         password: ''
     });
 
+    useEffect(() => {
+        const fetchLocation = async () => {
+            try {
+                let { status } = await Location.requestForegroundPermissionsAsync();
+                if (status !== 'granted') {
+                    Alert.alert('Permiso denegado', 'Permiso de ubicación no concedido');
+                    return;
+                }
+
+                let location = await Location.getCurrentPositionAsync({});
+                const { latitude, longitude } = location.coords;
+
+                let response = await Location.reverseGeocodeAsync({ latitude, longitude });
+                if (response.length > 0) {
+                    let { region, city } = response[0];
+                    await AsyncStorage.setItem('location', JSON.stringify({ latitude, longitude }));
+                    await AsyncStorage.setItem('region', region || 'Desconocido');
+                    
+                    await AsyncStorage.setItem('city', city || 'Desconocido');
+                    
+                } else {
+                    Alert.alert('Error', 'No se pudo obtener la ubicación');
+                }
+            } catch (error) {
+                Alert.alert('Error', 'Error al obtener ubicación: ' + error.message);
+            }
+        };
+
+        fetchLocation();
+    }, []);
+
     const handleInputChange = (name, value) => {
         setCredentials({ ...credentials, [name]: value });
     };
 
-    const validateForm = () => {
-        const { email, password } = credentials;
-        if (!email || !password) {
-            alert('Por favor, complete todos los campos.');
-            return false;
-        }
-        // Expresión regular para validar el formato del correo electrónico
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            alert('Por favor, ingrese un correo electrónico válido.');
-            return false;
-        }
-        return true;
+    const handleForgotPasswordPress = () => {
+        navigation.navigate('RecoveryScreen');
     };
 
     const handleLogin = async () => {
-        if (validateForm()) {
-            try {
-                await login_Usser(credentials.email, credentials.password);
-                const uuid = await AsyncStorage.getItem('userUid');
-                try {
-                    const condicion = { campo: 'uid', valor: uuid };
-                    const usuario = await fetch_Data('inf_usuarios_t', 'tipoUser', condicion);
-                    if (usuario && usuario.length > 0) {
-                        const tipoUser = usuario[0].tipoUser;
-                        await AsyncStorage.setItem('rol', tipoUser);
-                    } else {
-                        alert('No se encontraron datos.');
-                    }
-                } catch (e) {
-                    alert('Error al recuperar los datos: ' + e.message);
-                }
-
-                const rol = await AsyncStorage.getItem('rol');
-                if (rol == 'Conductor') {
-                    navigation.navigate('Conductor');
-                } else {
-                    navigation.navigate('Rutas');
-                }
-            } catch (e) {
-                alert('Error al iniciar sesión: ' + e.message);
-            }
+        const result = await login_Usser(credentials.email, credentials.password);
+        if (result.success) {
+            navigation.navigate('Rutas');
+        } else {
+            // Manejar el caso en que el inicio de sesión falla
         }
     };
 
@@ -97,23 +97,22 @@ export default function Login() {
                 />
                 <TouchableOpacity
                     style={styles.botonLogin}
-                    onPress={() => navigation.navigate('Register')}
+                    onPress={() => {
+                        navigation.navigate('Register');
+                    }}
                 >
-                    <Text style={styles.botonText}>Registar</Text>
+                    <Text style={styles.botonText}>Registrar</Text>
                 </TouchableOpacity>
-
                 <TouchableOpacity
                     style={styles.botonRegistrar}
-                    onPress={handleLogin}
+                    onPress={handleLogin}  // Usa la función actualizada para iniciar sesión
                 >
                     <Text style={styles.botonText}>Iniciar</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                     style={styles.buttonOlv}
-                    onPress={() => {
-                        navigation.navigate('RecoveryScreen');
-                    }}
+                    onPress={handleForgotPasswordPress}  // Llama a la función para obtener la ubicación
                 >
                     <Text style={styles.buttonTextOlvt}>Olvidaste tu contraseña?</Text>
                 </TouchableOpacity>
@@ -129,74 +128,74 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    decora: {
-        width: (Dimensions.get('window').width) - 20,
-        height: (Dimensions.get('window').height) / 2,
+    decora:{
+        width: (Dimensions.get('window').width)-20,
+        height:(Dimensions.get('window').height)/2,
         backgroundColor: '#3B6D7B',
         position: 'absolute',
-        bottom: 0,
-        right: 0,
+        bottom:0,
+        right:0,
         marginLeft: 10,
         borderTopLeftRadius: 50,
-        alignItems: 'center',
+        alignItems:'center',
     },
-    textBienve: {
-        color: '#ffffff',
-        fontSize: 35 / PixelRatio.getFontScale(),
-        margin: 20,
-        position: 'absolute',
-        left: 0,
+    textBienve:{
+        color:'#ffffff',
+        fontSize:35 / PixelRatio.getFontScale(),
+        margin:20,
+        position:'absolute',
+        left:0,
     },
-    textRaice: {
-        color: '#ffffff',
-        fontSize: 25 / PixelRatio.getFontScale(),
-        marginLeft: 20,
-        marginTop: 60,
-        position: 'absolute',
-        left: 0,
+    textRaice:{
+        color:'#ffffff',
+        fontSize:25 / PixelRatio.getFontScale(),
+        marginLeft:20,
+        marginTop:60,
+        position:'absolute',
+        left:0,
     },
-    inputEmail: {
-        width: "80%",
+    inputEmail:{
+        width:"80%",
+        height: "10%",  
+        paddingHorizontal: 10,
+        borderRadius:20,
+        backgroundColor: '#ffffff',
+        marginTop:'35%', 
+    },
+    inputPasswoord:{
+        width:"80%",
         height: "10%",
         paddingHorizontal: 10,
-        borderRadius: 20,
+        borderRadius:20,
         backgroundColor: '#ffffff',
-        marginTop: '35%',
-    },
-    inputPasswoord: {
-        width: "80%",
-        height: "10%",
-        paddingHorizontal: 10,
-        borderRadius: 20,
-        backgroundColor: '#ffffff',
-        marginTop: 20,
+        marginTop:20,
     },
     botonLogin: {
         width: "30%",
         height: "10%",
-        borderRadius: 20,
+        borderRadius:20,
         backgroundColor: '#fffff6',
         marginTop: '230',
-        position: 'absolute',
-        right: 0,
-        bottom: 0,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 90,
-        marginRight: 50,
+        position:'absolute',
+        right:0,
+        bottom:0,
+        alignItems:'center',
+        justifyContent:'center',
+        marginBottom:60,
+        marginRight:50,
     },
     botonRegistrar: {
         width: "30%",
         height: "10%",
-        borderRadius: 20,
+        borderRadius:20,
         backgroundColor: '#fffff6',
-        position: 'absolute',
-        left: 0,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginLeft: 50,
-        bottom: 0,
-        marginBottom: 90,
+        position:'absolute',
+        left:0,
+        alignItems:'center',
+        justifyContent:'center',
+        marginLeft:50,
+        bottom:0,
+        marginBottom:60,
     },
     botonText: {
         fontSize: 10,
@@ -205,17 +204,19 @@ const styles = StyleSheet.create({
     buttonOlv: {
         width: "100%",
         height: "5%",
-        position: 'absolute',
-        bottom: 20,
-        right: 0,
+        position:'absolute',
+        bottom:0,
+        right:0,
     },
     buttonTextOlvt: {
         fontSize: 10,
         color: '#ffffff',
-        position: 'absolute',
-        bottom: 0,
-        right: 0,
-        marginBottom: 20,
-        marginRight: 15,
-    },
+        position:'absolute',
+        bottom:0,
+        right:0,
+        marginBottom:20,
+
+        marginRight:15,
+    },    
 });
+

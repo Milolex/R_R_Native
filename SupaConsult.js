@@ -43,14 +43,12 @@ export async function login_Usser(email, password) {
 
     if (error) {
         alert('Error al iniciar sesión: ' + error.message);
+        return { success: false };
     } else {
         alert('Inicio de sesión exitoso');
         const userUid = data.user.id;
         await AsyncStorage.setItem('userUid', userUid);
-
-        
-        
-        return { data: data };
+        return { success: true, data: data };
     }
 }
 

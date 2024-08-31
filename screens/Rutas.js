@@ -31,7 +31,10 @@ const ListaRutas = () => {
     useEffect(() => {
         const cargaDatos = async () => {
             try {
-                const datosRutas = await fetch_Data('ruta_t', 'nombre, foto', {campo: 'departamento', valor: 'Cundinamarca'});
+                var departamento =await AsyncStorage.getItem('region');
+                var municipio =await AsyncStorage.getItem('city');
+                
+                const datosRutas = await fetch_Data('ruta_t', 'nombre, foto', {campo: 'municipio', valor: municipio});
                 setNombreRuta(datosRutas);
 
             } catch(error) {
@@ -168,7 +171,9 @@ const ListaServiciosVertical = () => {
     useEffect(() => {
         const cargaDatos = async () => {
             try {
-                const datosServicios = await fetch_Data('ruta_t', 'uid_ruta,hr_inicio,hr_fin,nombre,descripcion,foto,departamento,municipio,calificacion', {campo: 'departamento', valor: 'Cundinamarca'});
+                var departamento =await AsyncStorage.getItem('region');
+                var municipio =await AsyncStorage.getItem('city');
+                const datosServicios = await fetch_Data('ruta_t', 'uid_ruta,hr_inicio,hr_fin,nombre,descripcion,foto,departamento,municipio,calificacion', {campo: 'municipio', valor: municipio});
                 setServicios(datosServicios);
 
             } catch(error) {
