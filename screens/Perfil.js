@@ -153,10 +153,7 @@ const Perfil = () => {
         const reserva = reservas.find(reserva => reserva.uid_compra === uid_compra);
         if (reserva) {
             try {
-                // Guarda el uid_compra en AsyncStorage
                 await AsyncStorage.setItem('uid_compra', reserva.uid_compra);
-
-                // Navega a la pantalla de chat después de guardar uid_compra
                 navigation.navigate('Chat');
             } catch (error) {
                 console.error('Error al guardar uid_compra en AsyncStorage:', error);
@@ -168,30 +165,23 @@ const Perfil = () => {
     };
     const handleRatingChange = async (uid_compra, newRating) => {
         console.log(`UID Reserva: ${uid_compra}, Nueva Calificación: ${newRating}`);
-        // Actualiza la calificación en la base de datos
+        
         try {
             await update_Data('carrito_ven_t', 'calificacion', newRating, { campo: 'uid_compra', valor: uid_compra });
 
             const ruta_calificar = await fetch_Data('carrito_ven_t', 'uid_ruta', { campo: 'uid_compra', valor: uid_compra });
 
-            // Asegúrate de que ruta_calificar tenga al menos un elemento y es un array
+
             if (ruta_calificar.length > 0) {
-                const uidRuta = ruta_calificar[0].uid_ruta;
-               
+                const uidRuta = ruta_calificar[0].uid_ruta; 
                 const calificacion_ruta = await fetch_Data('ruta_t', 'calificacion', { campo: 'uid_ruta', valor: uidRuta });
                 
                 const promedio_calificacion = (calificacion_ruta[0].calificacion + newRating) / 2;
                 
                 await update_Data('ruta_t', 'calificacion', Math.round(promedio_calificacion), { campo: 'uid_ruta', valor: uidRuta });
 
-            } 
+            }
 
-
-
-            
-            
-         
-            // Actualiza el estado local para reflejar los cambios
             const updatedReservas = reservas.map(reserva =>
                 reserva.uid_compra === uid_compra ? { ...reserva, rating: newRating } : reserva
             );

@@ -127,7 +127,9 @@ const ListaServicios = () => {
     useEffect(() => {
         const cargaDatos = async () => {
             try {
-                const datosServicios = await fetch_Data('actividades_t', 'nombre, photo',{campo: 'municipio', valor: 'San_Juan'});
+                var departamento =await AsyncStorage.getItem('region');
+                var municipio =await AsyncStorage.getItem('city');
+                const datosServicios = await fetch_Data('actividades_t', 'nombre, photo',{campo: 'municipio', valor: municipio});
                 setServicios(datosServicios);
 
             } catch(error) {
@@ -374,7 +376,7 @@ const styles = StyleSheet.create({
         marginLeft: 20,
     },
     titSec: {
-        fontSize: 25,
+        fontSize: 23,
         color: 'black',
         marginLeft: 20,
     },
@@ -410,7 +412,7 @@ const styles = StyleSheet.create({
         fontSize: 20,
         marginLeft: 20,
         marginBottom: 5,
-        marginTop: 40,
+        marginTop: 35,
     },
     titleService: {
         fontSize: 20,

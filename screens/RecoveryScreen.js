@@ -1,8 +1,8 @@
 // screens/RecoveryScreen.js
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons'; // Importa el ícono de Material Icons
-import { reset_password, change_password, val_otp } from '../SupaConsult'; // Asegúrate de tener estas funciones implementadas
+import Icon from 'react-native-vector-icons/MaterialIcons'; 
+import { reset_password, change_password, val_otp } from '../SupaConsult'; 
 import { useNavigation } from '@react-navigation/native';
 
 const RecoveryScreen = () => {
@@ -29,17 +29,17 @@ const RecoveryScreen = () => {
             return;
         }
         try {
-            // Verificar el código
             const isCodeValid = await val_otp(email, code);
             if (!isCodeValid) {
                 Alert.alert('Error', 'El código de verificación es inválido.');
                 return;
             }
             
-            // Cambiar la contraseña si el código es válido
+            
             await change_password(newPassword);
             Alert.alert('Éxito', 'La contraseña ha sido cambiada exitosamente.');
-            // Aquí puedes redirigir al usuario a otra pantalla o limpiar el estado si es necesario
+            
+            
         } catch (error) {
             console.error('Error al cambiar la contraseña:', error.message);
             Alert.alert('Error', 'No se pudo cambiar la contraseña. Inténtalo de nuevo.');
@@ -78,7 +78,7 @@ const RecoveryScreen = () => {
                         onChangeText={setEmail}
                         keyboardType="email-address"
                         autoCapitalize="none"
-                        editable={false} // Deshabilita la edición del correo electrónico
+                        editable={false} 
                     />
                     <TextInput
                         style={styles.input}

@@ -110,7 +110,6 @@ const Conductor = () => {
         if (reserva) {
             try {
                 await AsyncStorage.setItem('uid_compra', reserva.uid_compra);
-                // Esperar a que AsyncStorage se complete antes de mostrar el mensaje
                 await AsyncStorage.getItem('uid_compra');
 
                 navigation.navigate('Chat');

@@ -37,11 +37,11 @@ export default function TestLocation() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'flex-end', // Esto alinea el contenido al final de la pantalla
+        justifyContent: 'flex-end', 
         padding: 20,
-        paddingBottom: Platform.OS === 'ios' ? 20 : 0 // Agrega un padding bottom adicional en iOS para evitar la superposición con el área de seguridad
+        paddingBottom: Platform.OS === 'ios' ? 20 : 0 
     },
     buttonContainer: {
-        marginBottom: 20, // Ajusta el margen inferior del botón según tus necesidades
+        marginBottom: 20, 
     },
 });

@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, Dimensions, TextInput, TouchableOpacity, PixelRatio, Alert } from 'react-native';
 import LottieView from 'lottie-react-native';
 import React, { useState, useEffect } from 'react';
-import { login_Usser } from '../SupaConsult'; // Asegúrate de que el nombre de la función esté correcto
+import { login_Usser } from '../SupaConsult'; 
 import { useNavigation } from '@react-navigation/native';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -32,9 +32,7 @@ export default function Login() {
                     let { region, city } = response[0];
                     await AsyncStorage.setItem('location', JSON.stringify({ latitude, longitude }));
                     await AsyncStorage.setItem('region', region || 'Desconocido');
-                    
                     await AsyncStorage.setItem('city', city || 'Desconocido');
-                    
                 } else {
                     Alert.alert('Error', 'No se pudo obtener la ubicación');
                 }
@@ -57,12 +55,22 @@ export default function Login() {
     const handleLogin = async () => {
         const result = await login_Usser(credentials.email, credentials.password);
         if (result.success) {
-            navigation.navigate('Rutas');
+            
+    
+            
+            const rolUser = await AsyncStorage.getItem('rolUser');
+            if(rolUser == 'Conductor'){
+                navigation.navigate('Conductor');
+            }else{
+                navigation.navigate('Rutas');
+            }
         } else {
-            // Manejar el caso en que el inicio de sesión falla
+            Alert.alert('Error', 'Credenciales incorrectas. Por favor intenta de nuevo.');
         }
     };
+    
 
+   
     return (
         <View style={styles.container}>
             <LottieView
@@ -78,7 +86,7 @@ export default function Login() {
                 }}
             />
             <View style={styles.decora}>
-                <Text style={styles.textBienve}>Bienvenido </Text>
+                <Text style={styles.textBienve}>Bienvenido</Text>
                 <Text style={styles.textRaice}>Raices Rurales</Text>
                 <TextInput
                     style={styles.inputEmail}
@@ -105,14 +113,13 @@ export default function Login() {
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.botonRegistrar}
-                    onPress={handleLogin}  // Usa la función actualizada para iniciar sesión
+                    onPress={handleLogin}
                 >
                     <Text style={styles.botonText}>Iniciar</Text>
                 </TouchableOpacity>
-
                 <TouchableOpacity
                     style={styles.buttonOlv}
-                    onPress={handleForgotPasswordPress}  // Llama a la función para obtener la ubicación
+                    onPress={handleForgotPasswordPress}
                 >
                     <Text style={styles.buttonTextOlvt}>Olvidaste tu contraseña?</Text>
                 </TouchableOpacity>
@@ -120,6 +127,7 @@ export default function Login() {
         </View>
     );
 }
+
 
 const styles = StyleSheet.create({
     container: {

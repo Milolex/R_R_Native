@@ -15,7 +15,7 @@ const Chat = () => {
     const previousMessages = useRef([]);
 
     const cargarDatos = useCallback(async () => {
-        if (!uidCliente) return; // Asegura que uidCliente está cargado
+        if (!uidCliente) return; 
     
         try {
             const uid = await AsyncStorage.getItem('userUid');
@@ -43,12 +43,12 @@ const Chat = () => {
                 });
             }
     
-            // Ordenar los mensajes por fecha de creación
+            
             if (Array.isArray(fetchedMessages)) {
                 fetchedMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
             }
     
-            // Compara los mensajes cargados con los mensajes actuales para evitar actualizaciones innecesarias
+            
             if (Array.isArray(fetchedMessages) && JSON.stringify(fetchedMessages) !== JSON.stringify(previousMessages.current)) {
                 setMessages(fetchedMessages);
                 previousMessages.current = fetchedMessages;
@@ -56,7 +56,7 @@ const Chat = () => {
         } catch (error) {
             Alert.alert('Error', 'Hubo un problema al cargar los datos.');
         }
-    }, [uidCliente, uidConductor]); // Añadida dependencia de uidConductor
+    }, [uidCliente, uidConductor]); 
     
     const inicializarDatos = useCallback(async () => {
         try {
@@ -70,7 +70,7 @@ const Chat = () => {
             const additionalData = await fetch_Data('carrito_ven_t', 'uid_cliente,uid_conductor', { campo: 'uid_compra', valor: uidCompra });
             const fetchedUidCliente = additionalData[0]?.uid_cliente;
             const fetchedUidConductor= additionalData[0]?.uid_conductor;
-            setUidCliente(fetchedUidCliente); // Setea uidCliente una vez
+            setUidCliente(fetchedUidCliente);
             setUidConductor(fetchedUidConductor);
         } catch (error) {
             Alert.alert('Error', 'Hubo un problema al inicializar los datos.');
@@ -78,9 +78,9 @@ const Chat = () => {
     }, []);
 
     useEffect(() => {
-        inicializarDatos(); // Inicializa uidCliente al cargar el componente
+        inicializarDatos(); 
 
-        const intervalId = setInterval(cargarDatos, 2000); // Luego carga datos cada 2 segundos
+        const intervalId = setInterval(cargarDatos, 2000); 
         return () => clearInterval(intervalId);
     }, [inicializarDatos, cargarDatos]);
 
@@ -117,7 +117,7 @@ const Chat = () => {
 
             await insert_Data('messages', newMessage);
             setMessage('');
-            cargarDatos(); // Recarga los datos para incluir el nuevo mensaje
+            cargarDatos(); 
         } catch (error) {
             Alert.alert('Error', 'Hubo un problema al enviar el mensaje.');
         }

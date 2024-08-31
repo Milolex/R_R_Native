@@ -34,7 +34,6 @@ export const uploadImage = async (fileBlob) => {
 
 
 
-
 export async function login_Usser(email, password) {
     const { data, error } = await supabase.auth.signInWithPassword({
         email: email,
@@ -42,12 +41,21 @@ export async function login_Usser(email, password) {
     });
 
     if (error) {
-        alert('Error al iniciar sesión: ' + error.message);
         return { success: false };
     } else {
         alert('Inicio de sesión exitoso');
         const userUid = data.user.id;
         await AsyncStorage.setItem('userUid', userUid);
+        const datosServicios = await fetch_Data('inf_usuarios_t', 'tipoUser', {campo: 'uid', valor: userUid});
+        
+        if (datosServicios.length > 0) {
+            const rolUser = datosServicios[0].tipoUser;
+            
+            await AsyncStorage.setItem('rolUser', rolUser);
+        } else {
+            alert('No se encontraron datos de tipoUser.');
+        }
+
         return { success: true, data: data };
     }
 }
@@ -170,7 +178,6 @@ export async function val_otp(email, token) {
             console.error('Error al verificar OTP:', error.message);
             return false;
         }
-        // Convertir ambos correos electrónicos a minúsculas para la comparación
         const providedEmail = email.toLowerCase();
         const returnedEmail = data.user.email.toLowerCase();
 
