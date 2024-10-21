@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons'; 
 import CabeCompo from './CabeCompo';
 import Perfil from './Perfil';
-import { fetch_Data, insert_Data} from '../SupaConsult';
+import { fetch_Data, insert_Data, update_Data} from '../SupaConsult';
 import { useNavigation } from '@react-navigation/native';
 import StarRating from './StarRating';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -35,6 +35,8 @@ const ListaRutas = () => {
                 var municipio =await AsyncStorage.getItem('city');
                 
                 const datosRutas = await fetch_Data('ruta_t', 'nombre, foto', {campo: 'municipio', valor: municipio});
+
+                
                 setNombreRuta(datosRutas);
 
             } catch(error) {
@@ -173,24 +175,54 @@ const ListaServiciosVertical = () => {
     useEffect(() => {
         const cargaDatos = async () => {
             try {
-                var departamento =await AsyncStorage.getItem('region');
-                var municipio =await AsyncStorage.getItem('city');
-                const datosServicios = await fetch_Data('ruta_t', 'uid_ruta,hr_inicio,hr_fin,nombre,descripcion,foto,departamento,municipio,calificacion', {campo: 'municipio', valor: municipio});
-                setServicios(datosServicios);
-
-            } catch(error) {
+                var departamento = await AsyncStorage.getItem('region');
+                var municipio = await AsyncStorage.getItem('city');
+                
+                // Obtener los datos de las rutas
+                const datosServicios = await fetch_Data(
+                    'ruta_t', 
+                    'uid_ruta,hr_inicio,hr_fin,nombre,descripcion,foto,departamento,municipio,calificacion,Views', 
+                    {campo: 'municipio', valor: municipio}
+                );
+                
+                
+                const pesoVistas = 0.3; 
+                const pesoCalificacion = 0.7; 
+                
+                const rutasConIndice = datosServicios.map(ruta => {
+                    const indicePopularidad = (pesoVistas * Number(ruta.Views)) + (pesoCalificacion * Number(ruta.calificacion));
+                    return { ...ruta, indicePopularidad };
+                });
+        
+           
+                const rutasOrdenadas = rutasConIndice.sort((a, b) => b.indicePopularidad - a.indicePopularidad);
+                
+               
+                setServicios(rutasOrdenadas);
+                
+            } catch (error) {
                 console.error('Error al cargar datos:', error);
                 alert('Error al cargar datos');
             }
         };
+        
+        
+        
 
         cargaDatos(); 
         const interval = setInterval(cargaDatos, 5000); 
         return () => clearInterval(interval); 
     }, []);
 
-    const handleVerMas = (service) => {
-        setSelectedService(service);
+    const handleVerMas = async (service) => {
+        try {
+            const view = service.Views;
+            await update_Data('ruta_t', 'Views', view + 1, { campo: 'uid_ruta', valor: service.uid_ruta });
+            setSelectedService(service);
+            navigation.navigate('Detalle_Ruta', { service });
+        } catch (error) {
+            console.error('Error al actualizar las vistas:', error);
+        }
     };
 
     const renderItem = ({ item }) => (
@@ -203,12 +235,8 @@ const ListaServiciosVertical = () => {
             </View>
             <View style={styles.buttonContainer}>
                 <Ionicons name="chevron-forward" size={24} color="black" style={styles.icon} />
-                <Button title="Ver más" onPress={() =>{
-                    navigation.navigate('Detalle_Ruta', {service: item});
-                }} />
+                <Button title="Ver más" onPress={() => handleVerMas(item)} />
                 <StarRating rating={item.calificacion} />
-                
-
             </View>
         </View>
     );
@@ -221,11 +249,7 @@ const ListaServiciosVertical = () => {
                 renderItem={renderItem}
                 keyExtractor={(item, index) => index.toString()} 
             />
-            {selectedService && (
-                <View style={styles.selectedServiceContainer}>
-                    <Text style={styles.selectedServiceText}>{`Seleccionaste: ${selectedService.nombre}`}</Text>
-                </View>
-            )}
+            
         </View>
     );
 };

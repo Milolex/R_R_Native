@@ -4,17 +4,17 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { insert_Data, fetch_Data } from '../SupaConsult';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RNPickerSelect from 'react-native-picker-select';
+import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function ListaActividades({ servicios, service }) {
-    
-
     const [selectedItems, setSelectedItems] = useState([]);
     const [selectedActivity, setSelectedActivity] = useState(null);
     const [conductores, setConductores] = useState([]);
     const [selectedConductor, setSelectedConductor] = useState(null);
     const [fechaAgendacion, setFechaAgendacion] = useState(new Date()); 
     const [showDatePicker, setShowDatePicker] = useState(false); 
+    const navigation = useNavigation();
 
     useEffect(() => {
         const fetchConductores = async () => {
@@ -58,39 +58,42 @@ export default function ListaActividades({ servicios, service }) {
 
     const agendar = async () => {
         const notSelectedActivities = servicios.filter((item, index) => !selectedItems[index]);
-
+    
         if (notSelectedActivities.length === servicios.length) {
             alert("No se seleccionaron actividades");
             return;
         }
-
+    
         if (!selectedConductor) {
             alert("Debes seleccionar un conductor");
             return;
         }
-
+    
         try {
             const userUid = await AsyncStorage.getItem('userUid');
-
+    
             if (!userUid) {
                 alert('Usuario no encontrado');
                 return;
             }
-
+    
             const now = new Date();
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
             const timeString = `${hours}:${minutes}:${seconds}`;
 
+            const costoTotal = calcularCostoTotal();
+    
             const dato = {
                 uid_conductor: selectedConductor,
                 uid_cliente: userUid,
-                status: 'Pago en Proceso',
+                status: 'Pago Realizado',
                 fecha_reserva: fechaAgendacion.toISOString().split('T')[0],
                 nombre_actividad: service.nombre,
                 uid_ruta: service.uid_ruta,
                 hora: timeString,
+                costo_total: costoTotal, 
                 act_1: null,
                 act_2: null,
                 act_3: null,
@@ -101,17 +104,17 @@ export default function ListaActividades({ servicios, service }) {
                 act_8: null,
                 act_9: null
             };
-
+    
             selectedItems.forEach((isSelected, index) => {
                 if (isSelected) {
                     const key = `act_${index + 1}`;
                     dato[key] = servicios[index].uid_actividades;
                 }
             });
+            
+            navigation.navigate('Pasarela', { costoTotal, dato});
 
-            await insert_Data('carrito_ven_t', dato);
-
-            alert('Uno de nuestros asesores se comunicará contigo para la respectiva cotización');
+            
         } catch (error) {
             console.error('Error al agendar actividades:', error);
             alert('Error al agendar actividades');
@@ -141,7 +144,8 @@ export default function ListaActividades({ servicios, service }) {
                     <View style={styles.textContainer}>
                         <Text style={styles.title}>{item.nombre}</Text>
                         <Text style={styles.description}>{item.descripcion}</Text>
-                        <Text style={styles.description}>{"(Esta actividad inicia a las: " + item.hora_inicio + " y finaliza a las: " + item.hora_fin + ")"}</Text>
+                        <Text style={styles.description}>{"(Esta actividad inicia a las: " + item.hr_inicio + " y finaliza a las: " + item.hr_fin + ")"}</Text>
+                        <Text style={styles.description}>{"Costo: " + new Intl.NumberFormat().format(item.costo)}</Text>
                     </View>
                     <View style={styles.checkboxContainer}>
                         {selectedItems[index] && <View style={styles.checkboxChecked}></View>}
@@ -149,6 +153,16 @@ export default function ListaActividades({ servicios, service }) {
                 </View>
             </TouchableOpacity>
         );
+    };
+
+   
+    const calcularCostoTotal = () => {
+        return selectedItems.reduce((total, isSelected, index) => {
+            if (isSelected) {
+                return total + servicios[index].costo;
+            }
+            return total;
+        }, 0);
     };
 
     return (
@@ -195,7 +209,6 @@ export default function ListaActividades({ servicios, service }) {
                             }
                         }}
                     />
-
                 )}
             </View>
 
@@ -209,6 +222,11 @@ export default function ListaActividades({ servicios, service }) {
                 renderItem={renderItem}
                 keyExtractor={(item, index) => index.toString()}
             />
+
+            <View style={styles.totalContainer}>
+                <Text style={styles.totalLabel}>Costo Total:</Text>
+                <Text style={styles.totalAmount}>{"$ " + new Intl.NumberFormat().format(calcularCostoTotal())}</Text>
+            </View>
 
             <View style={styles.buttonContainer}>
                 <Button title="Agendar Actividades" onPress={agendar} />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, Dimensions, ImageBackground, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, Dimensions, ImageBackground, ScrollView, TouchableOpacity } from 'react-native';
 import CabeCompo from './CabeCompo';
 import ListaActividades from './Lista_Actividades';
 import { fetch_Data } from '../SupaConsult';
@@ -25,7 +25,7 @@ export default function DetalleRuta({ route }) {
                     const idActividad = datosServicios[0][campo];
                     if (idActividad) {
                         try {
-                            const actividad = await fetch_Data('actividades_t', 'uid_actividades,nombre, descripcion, photo, hr_inicio, hr_fin', { campo: 'uid_actividades', valor: idActividad });
+                            const actividad = await fetch_Data('actividades_t', 'uid_actividades,nombre, descripcion, photo, hr_inicio, hr_fin, costo', { campo: 'uid_actividades', valor: idActividad });
                             return actividad[0];
                         } catch (fetchError) {
                             return null;
@@ -37,7 +37,15 @@ export default function DetalleRuta({ route }) {
 
                 const actividades = await Promise.all(actividadesPromises);
                 const actividadesFiltradas = actividades.filter(actividad => actividad);
-                setServicios(actividadesFiltradas);
+
+                // Ordenamos las actividades por hora de inicio
+                const actividadesOrdenadas = actividadesFiltradas.sort((a, b) => {
+                    const horaInicioA = new Date(`1970-01-01T${a.hr_inicio}Z`).getTime();
+                    const horaInicioB = new Date(`1970-01-01T${b.hr_inicio}Z`).getTime();
+                    return horaInicioA - horaInicioB;
+                });
+
+                setServicios(actividadesOrdenadas);
             } catch (error) {
                 alert('Error al cargar datos');
             }
@@ -57,7 +65,7 @@ export default function DetalleRuta({ route }) {
                     <Text style={styles.description}>Conductor designado: </Text>
                     <Text style={styles.description}>Si deseas eliminar alguna actividad puedes colocar tu dedo encima de ella para eliminarla.</Text>
                     <Text style={styles.subtitle}>ACTIVIDADES</Text>
-                    {/* Pasar el parámetro `service` a ListaActividades */}
+                    {/* Aquí pasamos la lista de actividades ordenadas */}
                     <ListaActividades servicios={servicios} nombreRuta={service.nombre} service={service} />
                 </View>
             </ScrollView>
